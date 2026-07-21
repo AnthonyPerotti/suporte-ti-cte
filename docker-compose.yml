@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: suporte-ti-cte-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: suporte_ti_cte
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: suporte-ti-cte-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/suporte_ti_cte
+      # URL do Frontend sem Nginx Proxy (Acesso direto pela porta 3773)
+      - FRONTEND_URL=http://192.168.16.200:3773
+      # JWT Settings (Replace these in production Portainer Envs)
+      - JWT_ACCESS_SECRET=super_secret_access_token_key_change_me
+      - JWT_REFRESH_SECRET=super_secret_refresh_token_key_change_me
+      - JWT_ACCESS_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRES_IN=7d
+      # Uploads
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE_MB=10
+      # SMTP Settings (Configure in Portainer Envs)
+      - SMTP_HOST=
+      - SMTP_PORT=
+      - SMTP_SECURE=
+      - SMTP_USER=
+      - SMTP_PASS=
+      - SMTP_FROM="Suporte TI CTE <suporte-ti-cte@cead.ufsm.br>"
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # ATENÇÃO: Sem o Nginx Proxy, o frontend precisa falar direto com a porta 3001 do backend.
+        # Troque "SEU_IP_DO_ZIMAOS" pelo IP local do seu ZimaOS (ex: http://192.168.1.100:3001)
+        - VITE_API_URL=http://192.168.16.200:3001
+    container_name: suporte-ti-cte-frontend
+    restart: unless-stopped
+    ports:
+      - "3773:80" # Exposed to host (ZimaOS), NPM will proxy to this port
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  uploads:
