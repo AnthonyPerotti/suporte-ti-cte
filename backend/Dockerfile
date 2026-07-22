@@ -2,6 +2,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
+RUN apk add --no-cache openssl
 RUN rm -f package-lock.json && npm install
 
 COPY . .
