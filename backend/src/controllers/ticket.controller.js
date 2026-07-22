@@ -22,6 +22,7 @@ const ticketSelect = {
   description: true,
   status: true,
   priority: true,
+  user_id: true,
   created_at: true,
   updated_at: true,
   closed_at: true,

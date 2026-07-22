@@ -3,11 +3,12 @@
 Sistema completo de suporte técnico interno e base de conhecimento.
 
 ## Recursos Principais
-- **Abertura e Gestao de Chamados:** Fluxo completo para usuarios abrirem tickets, com atribuicao a tecnicos, prazos estipulados e avaliacao de atendimento. (Prioridades de chamados restritas a equipe tecnica).
-- **Base de Conhecimento:** Sistema de artigos com suporte a pesquisa, categorias, tags e controle de acesso hierarquico (rascunhos e arquivamento via soft delete disponiveis para gestao).
-- **Agenda Google:** Integracao com gerador de links para criacao rapida de eventos no Google Agenda com fusos horarios ajustados automaticamente.
-- **Identidade Visual Customizada:** Interface limpa, responsiva, com a identidade do CTE (Coordenadoria de Tecnologia Educacional) e indicadores amigaveis de prazos.
-- **Controle de Permissoes:** Tres niveis de acesso (Admin, Tecnico e Usuario) para separacao adequada de responsabilidades e visoes do sistema.
+- **Abertura e Gestão de Chamados:** Fluxo completo para usuários abrirem tickets, com atribuição a técnicos, prazos estipulados, avaliação de atendimento e um histórico unificado (timeline) ordenado. (Prioridades de chamados restritas à equipe técnica).
+- **Base de Conhecimento:** Sistema de artigos com suporte a pesquisa, categorias, tags e controle de acesso hierárquico (rascunhos e arquivamento via soft delete disponíveis para gestão).
+- **Agenda Google:** Integração com gerador de links para criação rápida de eventos no Google Agenda com fusos horários ajustados automaticamente.
+- **Perfil de Usuário:** Gestão autônoma de perfil, onde o usuário pode alterar sua foto (avatar), nome, e-mail e senha de forma simplificada e independente.
+- **Identidade Visual Customizada:** Interface limpa, responsiva, com a identidade do CTE (Coordenadoria de Tecnologia Educacional) e indicadores amigáveis de prazos.
+- **Controle de Permissões:** Três níveis de acesso (Admin, Técnico e Usuário) para separação adequada de responsabilidades e visões do sistema.
 
 ## Arquitetura
 - **Backend:** Node.js, Express, Prisma, PostgreSQL

@@ -18,6 +18,7 @@ import Knowledge from './pages/Knowledge';
 import KnowledgeDetail from './pages/KnowledgeDetail';
 import Calendar from './pages/Calendar';
 import Reports from './pages/Reports';
+import Profile from './pages/Profile';
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/tickets/:id" element={<PrivateRoute><TicketDetail /></PrivateRoute>} />
             <Route path="/knowledge" element={<PrivateRoute><Knowledge /></PrivateRoute>} />
             <Route path="/knowledge/:id" element={<PrivateRoute><KnowledgeDetail /></PrivateRoute>} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
 
             {/* Admin / Tech Routes */}
             <Route path="/admin" element={<PrivateRoute roles={['admin', 'technician']}><AdminDashboard /></PrivateRoute>} />

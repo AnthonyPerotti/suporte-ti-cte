@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import cteLogo from '../assets/cte-logo.png';
 
 const roleLabels = { admin: 'Administrador', technician: 'Técnico', user: 'Usuário' };
 
@@ -48,7 +49,7 @@ const Sidebar = () => {
     <aside className="sidebar">
       <div className="sidebar-logo">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <img src="/src/assets/cte-logo.png" alt="CTE Logo" style={{ width: 40, height: 'auto', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' }} />
+          <img src={cteLogo} alt="CTE Logo" style={{ width: 40, height: 'auto', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' }} />
           <div>
             <div className="sidebar-logo-text">Suporte TI</div>
             <div className="sidebar-logo-sub">CTE · UFSM</div>
@@ -86,6 +87,17 @@ const Sidebar = () => {
             <div className="sidebar-user-role">{roleLabels[user?.role]}</div>
           </div>
         </div>
+        <Link 
+          to="/profile"
+          className="btn btn-ghost btn-sm btn-full"
+          style={{ marginTop: 16, justifyContent: 'flex-start', gap: 8, color: 'var(--color-text)' }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Meu Perfil
+        </Link>
         <button
           onClick={handleLogout}
           className="btn btn-ghost btn-sm btn-full"

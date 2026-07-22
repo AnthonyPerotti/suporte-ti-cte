@@ -130,10 +130,13 @@ const NewTicket = () => {
 
               <div className="form-group">
                 <label className="form-label" htmlFor="description">Descrição completa *</label>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-warning)', marginBottom: 8, padding: '8px 12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 6, border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                  <strong>Aviso:</strong> Por favor, informe em qual <strong>Sala e/ou Prédio</strong> o equipamento se encontra ou onde o técnico deve ir para lhe atender.
+                </div>
                 <textarea
                   id="description"
                   className="form-textarea"
-                  placeholder="Explique o problema detalhadamente. O que aconteceu? Quando começou? Quais mensagens de erro aparecem? O que você já tentou fazer?"
+                  placeholder="Explique o problema detalhadamente e informe sua SALA/LOCALIZAÇÃO."
                   value={description}
                   onChange={e => setDescription(e.target.value)}
                   style={{ minHeight: 160 }}

@@ -67,17 +67,53 @@ const createUser = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { name, department, role, is_active, avatar_url } = req.body;
+  const { name, department, role, is_active, email, password } = req.body;
 
   // Non-admins can only update their own profile (limited fields)
   if (req.user.role !== 'admin' && req.params.id !== req.user.id) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
+  const currentUser = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!currentUser) return res.status(404).json({ error: 'User not found' });
+
   const data = {};
   if (name !== undefined) data.name = name;
   if (department !== undefined) data.department = department;
-  if (avatar_url !== undefined) data.avatar_url = avatar_url;
+
+  if (email && email !== currentUser.email) {
+    const domain = email.split('@')[1];
+    if (!ALLOWED_DOMAINS.includes(domain)) {
+      return res.status(400).json({ error: 'Email domain not allowed. Use @ufsm.br or @cead.ufsm.br' });
+    }
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) return res.status(409).json({ error: 'Email already in use' });
+    data.email = email;
+  }
+
+  if (password) {
+    if (password.length < 4) return res.status(400).json({ error: 'Password too short' });
+    data.password_hash = await bcrypt.hash(password, 12);
+  }
+
+  if (req.file) {
+    data.avatar_url = req.file.filename;
+    // Delete old avatar
+    if (currentUser.avatar_url && currentUser.avatar_url.startsWith('upload_')) {
+      const fs = require('fs');
+      const path = require('path');
+      const oldPath = path.join(process.cwd(), 'uploads', currentUser.avatar_url);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+  } else if (req.body.avatar_url === '') {
+    data.avatar_url = null; // Removed avatar
+    if (currentUser.avatar_url && currentUser.avatar_url.startsWith('upload_')) {
+      const fs = require('fs');
+      const path = require('path');
+      const oldPath = path.join(process.cwd(), 'uploads', currentUser.avatar_url);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+  }
 
   // Only admins can change role and is_active
   if (req.user.role === 'admin') {

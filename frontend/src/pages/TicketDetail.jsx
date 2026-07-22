@@ -23,7 +23,7 @@ const STATUS_TRANSITIONS = {
   in_progress:  ['waiting_user', 'resolved', 'closed'],
   waiting_user: ['in_progress', 'resolved', 'closed'],
   resolved:     ['closed', 'in_progress'],
-  closed:       [],
+  closed:       ['in_progress'],
 };
 
 const STATUS_LABELS = { open: 'Aberto', in_progress: 'Em Atendimento', waiting_user: 'Aguardando Usuário', resolved: 'Resolvido', closed: 'Encerrado' };
@@ -129,6 +129,11 @@ const TicketDetail = () => {
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
   const nextStatuses = isStaff ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
 
+  const timelineItems = [
+    ...(ticket.events || []).map(e => ({ ...e, _itemType: 'event' })),
+    ...(ticket.comments || []).map(c => ({ ...c, _itemType: 'comment' }))
+  ].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -182,42 +187,56 @@ const TicketDetail = () => {
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Histórico</div>
               <div className="timeline">
-                {ticket.events?.map(ev => (
-                  <div key={ev.id} className="timeline-item">
-                    <div className="timeline-dot" style={{ fontSize: '0.9rem' }}>
-                      {ev.type === 'created' ? '✦' : ev.type === 'status_change' ? '◉' : ev.type === 'assignment' ? '◎' : ev.type === 'comment_added' ? '💬' : ev.type === 'rating_added' ? '★' : '•'}
-                    </div>
-                    <div className="timeline-body">
-                      <div className="timeline-meta">
-                        {ev.actor?.name || 'Sistema'} — {formatDate(ev.created_at)}
+                {timelineItems.map(item => {
+                  if (item._itemType === 'event') {
+                    const ev = item;
+                    const assignedUserName = ev.type === 'assignment' && ev.metadata?.assignee_id 
+                      ? (technicians.find(t => t.id === ev.metadata.assignee_id)?.name || 'Técnico') 
+                      : null;
+
+                    return (
+                      <div key={`ev-${ev.id}`} className="timeline-item">
+                        <div className="timeline-dot" style={{ fontSize: '0.9rem' }}>
+                          {ev.type === 'created' ? '✦' : ev.type === 'status_change' ? '◉' : ev.type === 'assignment' ? '◎' : ev.type === 'comment_added' ? '💬' : ev.type === 'rating_added' ? '★' : '•'}
+                        </div>
+                        <div className="timeline-body">
+                          <div className="timeline-meta">
+                            {ev.actor?.name || 'Sistema'} — {formatDate(ev.created_at)}
+                          </div>
+                          <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                            {EVENT_LABELS[ev.type] || ev.type}
+                            {ev.type === 'status_change' && ev.metadata && (
+                              <span>: {STATUS_LABELS[ev.metadata.from]} → {STATUS_LABELS[ev.metadata.to]}</span>
+                            )}
+                            {ev.type === 'assignment' && assignedUserName && (
+                              <span> para {assignedUserName}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        {EVENT_LABELS[ev.type] || ev.type}
-                        {ev.type === 'status_change' && ev.metadata && (
-                          <span>: {STATUS_LABELS[ev.metadata.from]} → {STATUS_LABELS[ev.metadata.to]}</span>
-                        )}
+                    );
+                  } else {
+                    const c = item;
+                    return (
+                      <div key={`com-${c.id}`} className="timeline-item">
+                        <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined }}>
+                          <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)' }}>
+                            {getInitials(c.author.name)}
+                          </div>
+                        </div>
+                        <div className="timeline-body">
+                          <div className="timeline-meta">
+                            <strong>{c.author.name}</strong> — {formatDate(c.created_at)}
+                            {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
+                          </div>
+                          <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
+                            {c.content}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-                {ticket.comments?.map(c => (
-                  <div key={c.id} className="timeline-item">
-                    <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined }}>
-                      <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)' }}>
-                        {getInitials(c.author.name)}
-                      </div>
-                    </div>
-                    <div className="timeline-body">
-                      <div className="timeline-meta">
-                        <strong>{c.author.name}</strong> — {formatDate(c.created_at)}
-                        {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
-                      </div>
-                      <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
-                        {c.content}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  }
+                })}
               </div>
             </div>
 

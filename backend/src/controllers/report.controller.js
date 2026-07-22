@@ -6,6 +6,7 @@ const getReports = async (req, res) => {
 
   const startDate = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const endDate = to ? new Date(to) : new Date();
+  endDate.setHours(23, 59, 59, 999);
 
   const where = {
     created_at: { gte: startDate, lte: endDate },
@@ -61,6 +62,7 @@ const exportCsv = async (req, res) => {
   const { from, to } = req.query;
   const startDate = from ? new Date(from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const endDate = to ? new Date(to) : new Date();
+  endDate.setHours(23, 59, 59, 999);
 
   const tickets = await prisma.ticket.findMany({
     where: { created_at: { gte: startDate, lte: endDate } },

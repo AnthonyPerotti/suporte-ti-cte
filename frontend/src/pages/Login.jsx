@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import cteLogoFull from '../assets/cte-logo-full.png';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -70,7 +71,7 @@ const LoginPage = () => {
       <div style={{ width: '100%', maxWidth: 400, position: 'relative' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <img src="/src/assets/cte-logo-full.png" alt="CTE Logo" style={{ maxWidth: 280, filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.5))' }} />
+          <img src={cteLogoFull} alt="CTE Logo" style={{ maxWidth: 280, filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.5))' }} />
         </div>
 
         {/* Card */}
