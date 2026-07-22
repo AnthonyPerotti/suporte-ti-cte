@@ -48,7 +48,7 @@ const listTickets = async (req, res) => {
     // Regular users only see their own tickets
     ...(!isStaff && { user_id: req.user.id }),
     ...(status && status !== 'active' && { status }),
-    ...(status === 'active' && { status: { notIn: ['resolved', 'closed'] } }),
+    ...(status === 'active' && { status: { notIn: ['closed'] } }),
     ...(priority && { priority }),
     ...(category_id && { category_id }),
     ...(assignee_id && { assignee_id }),

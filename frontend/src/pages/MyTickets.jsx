@@ -8,7 +8,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos os status' },
-  { value: 'open', label: 'Aberto' },
+  { value: 'active', label: 'Abertos (Filtro)' },
+  { value: 'open', label: 'Novo (Aberto)' },
   { value: 'in_progress', label: 'Em Atendimento' },
   { value: 'waiting_user', label: 'Aguardando Usuário' },
   { value: 'resolved', label: 'Resolvido' },
@@ -24,7 +25,7 @@ const MyTickets = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('active');
 
   const [search, setSearch] = useState('');
   const navigate = useNavigate();

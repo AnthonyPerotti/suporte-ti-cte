@@ -7,8 +7,8 @@ import { useToast } from '../contexts/ToastContext';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
-  { value: 'active', label: 'Ativos' },
-  { value: 'open', label: 'Aberto' },
+  { value: 'active', label: 'Abertos (Filtro)' },
+  { value: 'open', label: 'Novo (Aberto)' },
   { value: 'in_progress', label: 'Em Atendimento' },
   { value: 'waiting_user', label: 'Aguardando Usuário' },
   { value: 'resolved', label: 'Resolvido' },
