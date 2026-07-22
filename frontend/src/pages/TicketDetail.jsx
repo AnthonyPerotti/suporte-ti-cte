@@ -270,10 +270,16 @@ const TicketDetail = () => {
                           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                             {EVENT_LABELS[ev.type] || ev.type}
                             {ev.type === 'status_change' && ev.metadata && (
-                              <span>: {STATUS_LABELS[ev.metadata.from]} → {STATUS_LABELS[ev.metadata.to]}</span>
+                              <span>: {STATUS_LABELS[ev.metadata.old || ev.metadata.from]} → {STATUS_LABELS[ev.metadata.new || ev.metadata.to]}</span>
                             )}
                             {ev.type === 'assignment' && assignedUserName && (
                               <span> para {assignedUserName}</span>
+                            )}
+                            {ev.type === 'rating_added' && (ev.metadata?.rating || ticket.rating) && (
+                              <div style={{ marginTop: 4, padding: '8px 12px', background: 'rgba(245,158,11,0.1)', borderRadius: 4, color: 'var(--color-warning)', display: 'inline-block' }}>
+                                ★ {ev.metadata?.rating || ticket.rating} / 5
+                                {ticket.rating_comment && <span style={{ marginLeft: 8, fontStyle: 'italic', color: 'var(--color-text-muted)' }}>"{ticket.rating_comment}"</span>}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -283,9 +289,13 @@ const TicketDetail = () => {
                     const c = item;
                     return (
                       <div key={`com-${c.id}`} className="timeline-item">
-                        <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined }}>
-                          <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)' }}>
-                            {getInitials(c.author.name)}
+                        <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined, padding: 0, overflow: 'hidden' }}>
+                          <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)', width: '100%', height: '100%' }}>
+                            {c.author.avatar_url ? (
+                              <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${c.author.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              getInitials(c.author.name)
+                            )}
                           </div>
                         </div>
                         <div className="timeline-body">
@@ -423,7 +433,13 @@ const TicketDetail = () => {
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Solicitante</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div className="avatar avatar-md">{getInitials(ticket.user?.name)}</div>
+                <div className="avatar avatar-md" style={{ overflow: 'hidden' }}>
+                  {ticket.user?.avatar_url ? (
+                    <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${ticket.user.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    getInitials(ticket.user?.name)
+                  )}
+                </div>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.user?.name}</div>
                   <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.user?.email}</div>
@@ -437,7 +453,13 @@ const TicketDetail = () => {
                 <div className="card-title">Técnico Responsável</div>
                 {ticket.assignee ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                    <div className="avatar avatar-md" style={{ background: 'var(--color-primary)' }}>{getInitials(ticket.assignee.name)}</div>
+                    <div className="avatar avatar-md" style={{ background: 'var(--color-primary)', overflow: 'hidden' }}>
+                      {ticket.assignee.avatar_url ? (
+                        <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${ticket.assignee.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        getInitials(ticket.assignee.name)
+                      )}
+                    </div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.assignee.name}</div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.assignee.email}</div>

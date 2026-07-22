@@ -27,6 +27,7 @@ const ticketSelect = {
   updated_at: true,
   closed_at: true,
   rating: true,
+  rating_comment: true,
   assignee_id: true,
   category_id: true,
   due_date: true,
@@ -335,7 +336,7 @@ const rateTicket = async (req, res) => {
       ticket_id: ticket.id,
       actor_id: req.user.id,
       type: 'rating_added',
-      metadata: { rating: parseInt(rating) },
+      metadata: { rating: parseInt(rating), comment: comment || null },
     },
   });
 
