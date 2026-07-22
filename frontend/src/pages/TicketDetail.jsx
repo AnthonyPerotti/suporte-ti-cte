@@ -101,7 +101,7 @@ const TicketDetail = () => {
   const handleJitsiMeet = () => {
     const roomName = `SuporteTI-${id}-${Math.random().toString(36).substring(2,8)}`;
     const jitsiUrl = `https://meet.jit.si/${roomName}`;
-    setComment(prev => `${prev}\n\nAcesse a sala de reunião: ${jitsiUrl}`);
+    setComment(prev => prev ? `${prev}\n\nAcesse a sala de reunião: ${jitsiUrl}` : `Acesse a sala de reunião: ${jitsiUrl}`);
   };
 
   const updateStatus = async (status) => {
@@ -155,9 +155,26 @@ const TicketDetail = () => {
     if (!window.confirm('Arquivar este chamado? Ele sairá da lista principal.')) return;
     try {
       await api.patch(`/tickets/${id}/archive`);
+      
+      // Post internal note for history
+      await api.post(`/tickets/${id}/comments`, { content: 'Chamado arquivado pelo administrador.', is_internal: true });
+      
       toast.success('Chamado arquivado');
       navigate('/');
     } catch { toast.error('Erro ao arquivar'); }
+  };
+
+  const unarchiveTicket = async () => {
+    if (!window.confirm('Desarquivar este chamado? Ele voltará para a lista principal.')) return;
+    try {
+      await api.patch(`/tickets/${id}/unarchive`);
+      
+      // Post internal note for history
+      await api.post(`/tickets/${id}/comments`, { content: 'Chamado desarquivado pelo administrador.', is_internal: true });
+      
+      toast.success('Chamado desarquivado');
+      await load();
+    } catch { toast.error('Erro ao desarquivar'); }
   };
 
   const deleteTicket = async () => {
@@ -208,6 +225,7 @@ const TicketDetail = () => {
             {/* Header */}
             <div className="card" style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
+                {ticket.is_archived && <span className="badge badge-normal" style={{ background: '#6b7280' }}>Arquivado</span>}
                 <StatusBadge status={ticket.status} />
                 {isStaff && <PriorityBadge priority={ticket.priority} />}
                 <SlaBadge sla_status={ticket.sla_status} />
@@ -255,7 +273,7 @@ const TicketDetail = () => {
                   if (item._itemType === 'event') {
                     const ev = item;
                     const assignedUserName = ev.type === 'assignment' && ev.metadata?.assignee_id 
-                      ? (technicians.find(t => t.id === ev.metadata.assignee_id)?.name || 'Técnico') 
+                      ? (ev.metadata.assignee_id === ticket.assignee?.id ? ticket.assignee?.name : technicians.find(t => t.id === ev.metadata.assignee_id)?.name || 'Técnico') 
                       : null;
 
                     return (
@@ -531,10 +549,22 @@ const TicketDetail = () => {
             {user?.role === 'admin' && (
               <div className="card" style={{ marginBottom: 16, borderColor: 'var(--color-danger)', background: 'rgba(239,68,68,0.02)' }}>
                 <div className="card-title" style={{ color: 'var(--color-danger)' }}>Admin</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <button className="btn btn-secondary btn-sm" onClick={archiveTicket}>Arquivar Chamado</button>
-                  <button className="btn btn-danger btn-sm" onClick={deleteTicket}>🗑️ Excluir Definitivamente</button>
-                </div>
+                {user.role === 'admin' ? (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {ticket.is_archived ? (
+                      <button className="btn btn-secondary btn-sm btn-full" onClick={unarchiveTicket} style={{ background: 'var(--color-bg)' }}>
+                        Desarquivar Chamado
+                      </button>
+                    ) : (
+                      <button className="btn btn-secondary btn-sm btn-full" onClick={archiveTicket} style={{ background: 'var(--color-bg)' }}>
+                        Arquivar Chamado
+                      </button>
+                    )}
+                    <button className="btn btn-secondary btn-sm btn-full" onClick={deleteTicket} style={{ background: 'var(--color-danger)', color: 'white', border: 'none' }}>
+                      🗑️ Excluir
+                    </button>
+                  </div>
+                ) : null}
               </div>
             )}
 

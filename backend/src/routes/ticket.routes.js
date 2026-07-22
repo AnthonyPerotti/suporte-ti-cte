@@ -12,6 +12,7 @@ router.put('/:id', authorize('admin', 'technician'), ctrl.updateTicket);
 router.post('/:id/comments', upload.array('attachments', 5), ctrl.addComment);
 router.post('/:id/rate', ctrl.rateTicket);
 router.patch('/:id/archive', authorize('admin'), ctrl.archiveTicket);
+router.patch('/:id/unarchive', authorize('admin'), ctrl.unarchiveTicket);
 router.delete('/:id', authorize('admin'), ctrl.deleteTicket);
 
 module.exports = router;

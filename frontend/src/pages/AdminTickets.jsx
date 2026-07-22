@@ -90,7 +90,8 @@ const AdminTickets = () => {
             {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
           <button 
-            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-ghost'}`} 
+            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-secondary'}`} 
+            style={{ fontWeight: 600, border: '1px solid var(--color-border)' }}
             onClick={() => { setShowArchived(!showArchived); setPage(1); }}
           >
             {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
@@ -122,7 +123,10 @@ const AdminTickets = () => {
                     <tr key={t.id} onClick={() => navigate(`/admin/tickets/${t.id}`)}>
                       <td style={{ fontFamily: 'monospace', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>#{t.id.slice(0, 8).toUpperCase()}</td>
                       <td style={{ maxWidth: 220 }}>
-                        <div className="truncate" style={{ fontWeight: 500 }}>{t.title}</div>
+                        <div className="truncate" style={{ fontWeight: 500 }}>
+                          {t.is_archived && <span className="badge badge-normal" style={{ background: '#6b7280', marginRight: 6 }}>Arquivado</span>}
+                          {t.title}
+                        </div>
                         {t.category && <div className="text-xs text-muted">{t.category.name}</div>}
                       </td>
                       <td>

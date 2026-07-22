@@ -9,6 +9,7 @@ const getReports = async (req, res) => {
   endDate.setHours(23, 59, 59, 999);
 
   const where = {
+    is_archived: false,
     created_at: { gte: startDate, lte: endDate },
     ...(technician_id && { assignee_id: technician_id }),
     ...(category_id && { category_id }),
@@ -65,7 +66,7 @@ const exportCsv = async (req, res) => {
   endDate.setHours(23, 59, 59, 999);
 
   const tickets = await prisma.ticket.findMany({
-    where: { created_at: { gte: startDate, lte: endDate } },
+    where: { is_archived: false, created_at: { gte: startDate, lte: endDate } },
     include: {
       user: { select: { name: true, email: true } },
       assignee: { select: { name: true } },
@@ -105,16 +106,18 @@ const getDashboard = async (req, res) => {
   const isStaff = ['admin', 'technician'].includes(req.user.role);
   const assigneeFilter = req.user.role === 'technician' ? { assignee_id: req.user.id } : {};
 
+  const baseFilter = { is_archived: false, ...assigneeFilter };
+
   const [openToday, totalOpen, inProgress, waitingUser, criticalSla, warningSla] = await Promise.all([
-    prisma.ticket.count({ where: { created_at: { gte: today, lt: tomorrow }, ...assigneeFilter } }),
-    prisma.ticket.count({ where: { status: 'open', ...assigneeFilter } }),
-    prisma.ticket.count({ where: { status: 'in_progress', ...assigneeFilter } }),
-    prisma.ticket.count({ where: { status: 'waiting_user', ...assigneeFilter } }),
+    prisma.ticket.count({ where: { created_at: { gte: today, lt: tomorrow }, ...baseFilter } }),
+    prisma.ticket.count({ where: { status: 'open', ...baseFilter } }),
+    prisma.ticket.count({ where: { status: 'in_progress', ...baseFilter } }),
+    prisma.ticket.count({ where: { status: 'waiting_user', ...baseFilter } }),
     prisma.ticket.count({
       where: {
         status: { in: ['open', 'in_progress'] },
         updated_at: { lte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
-        ...assigneeFilter,
+        ...baseFilter,
       },
     }),
     prisma.ticket.count({
@@ -124,7 +127,7 @@ const getDashboard = async (req, res) => {
           lte: new Date(Date.now() - 24 * 60 * 60 * 1000),
           gte: new Date(Date.now() - 48 * 60 * 60 * 1000),
         },
-        ...assigneeFilter,
+        ...baseFilter,
       },
     }),
   ]);
@@ -132,7 +135,7 @@ const getDashboard = async (req, res) => {
   // Last 30 days by day
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const recentTickets = await prisma.ticket.findMany({
-    where: { created_at: { gte: thirtyDaysAgo }, ...assigneeFilter },
+    where: { created_at: { gte: thirtyDaysAgo }, ...baseFilter },
     select: { created_at: true, status: true },
   });
 

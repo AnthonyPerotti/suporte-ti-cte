@@ -25,6 +25,7 @@ const MyTickets = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
 
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const MyTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, ...(status && { status }), ...(search && { search }) };
+      const params = { page, limit, ...(status && { status }), ...(search && { search }), archived: showArchived };
       const { data } = await api.get('/tickets', { params });
       setTickets(data.tickets);
       setTotal(data.total);
@@ -46,7 +47,7 @@ const MyTickets = () => {
     }
   };
 
-  useEffect(() => { fetchTickets(); }, [page, status, search]);
+  useEffect(() => { fetchTickets(); }, [page, status, search, showArchived]);
 
   const pages = Math.ceil(total / limit);
 
@@ -86,7 +87,13 @@ const MyTickets = () => {
           <select className="form-select" style={{ width: 'auto' }} value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-
+          <button 
+            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-secondary'}`} 
+            style={{ fontWeight: 600, border: '1px solid var(--color-border)' }}
+            onClick={() => { setShowArchived(!showArchived); setPage(1); }}
+          >
+            {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
+          </button>
         </div>
 
         {/* Table */}
@@ -129,7 +136,10 @@ const MyTickets = () => {
                         #{t.id.slice(0, 8).toUpperCase()}
                       </td>
                       <td style={{ maxWidth: 280 }}>
-                        <div className="truncate" style={{ fontWeight: 500 }}>{t.title}</div>
+                        <div className="truncate" style={{ fontWeight: 500 }}>
+                          {t.is_archived && <span className="badge badge-normal" style={{ background: '#6b7280', marginRight: 6 }}>Arquivado</span>}
+                          {t.title}
+                        </div>
                         {t.category && <div className="text-xs text-muted">{t.category.name}</div>}
                       </td>
                       <td><StatusBadge status={t.status} /></td>

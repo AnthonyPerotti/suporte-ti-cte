@@ -167,10 +167,16 @@ const createTicket = async (req, res) => {
   emailService.sendTicketCreatedToTeam({ ticket, user, teamEmails }).catch(console.error);
 
   // Automated first reply
-  const systemAdmin = await prisma.user.findFirst({
-    where: { role: 'admin', is_active: true },
-    orderBy: { created_at: 'asc' }
+  let systemAdmin = await prisma.user.findFirst({
+    where: { name: 'Suporte TI', role: 'admin' }
   });
+
+  if (!systemAdmin) {
+    systemAdmin = await prisma.user.findFirst({
+      where: { role: 'admin', is_active: true },
+      orderBy: { created_at: 'asc' }
+    });
+  }
 
   if (systemAdmin) {
     const template = await prisma.template.findFirst({
@@ -213,6 +219,11 @@ const updateTicket = async (req, res) => {
   const data = {};
   const events = [];
 
+  if (assignee_id !== undefined && assignee_id !== current.assignee_id) {
+    data.assignee_id = assignee_id;
+    events.push({ type: 'assignment', metadata: { assignee_id } });
+  }
+
   if (status && status !== current.status) {
     // If ticket is reopened (was closed/resolved, now open/in_progress)
     if (['resolved', 'closed'].includes(current.status) && ['open', 'in_progress'].includes(status)) {
@@ -235,11 +246,6 @@ const updateTicket = async (req, res) => {
   
   if (due_date !== undefined) {
     data.due_date = due_date ? new Date(due_date) : null;
-  }
-
-  if (assignee_id !== undefined && assignee_id !== current.assignee_id) {
-    data.assignee_id = assignee_id;
-    events.push({ type: 'assignment', metadata: { assignee_id } });
   }
 
   if (category_id !== undefined) data.category_id = category_id;
@@ -383,6 +389,14 @@ const archiveTicket = async (req, res) => {
   return res.json({ message: 'Ticket archived' });
 };
 
+const unarchiveTicket = async (req, res) => {
+  const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  
+  await prisma.ticket.update({ where: { id: req.params.id }, data: { is_archived: false } });
+  return res.json({ message: 'Ticket unarchived' });
+};
+
 const deleteTicket = async (req, res) => {
   const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
@@ -391,4 +405,4 @@ const deleteTicket = async (req, res) => {
   return res.json({ message: 'Ticket deleted' });
 };
 
-module.exports = { listTickets, getTicket, createTicket, updateTicket, addComment, rateTicket, archiveTicket, deleteTicket };
+module.exports = { listTickets, getTicket, createTicket, updateTicket, addComment, rateTicket, archiveTicket, unarchiveTicket, deleteTicket };
