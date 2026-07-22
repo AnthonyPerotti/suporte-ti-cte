@@ -259,10 +259,21 @@ const updateTicket = async (req, res) => {
     },
   });
 
+  let systemAdmin = await prisma.user.findFirst({
+    where: { name: 'Suporte TI', role: 'admin' }
+  });
+  if (!systemAdmin) {
+    systemAdmin = await prisma.user.findFirst({ where: { role: 'admin' }, orderBy: { created_at: 'asc' } });
+  }
+
   // Persist events
   for (const ev of events) {
+    let eventActorId = req.user.id;
+    if (ev.type === 'assignment' && systemAdmin) {
+      eventActorId = systemAdmin.id;
+    }
     await prisma.ticketEvent.create({
-      data: { ticket_id: ticket.id, actor_id: req.user.id, ...ev },
+      data: { ticket_id: ticket.id, actor_id: eventActorId, ...ev },
     });
   }
 

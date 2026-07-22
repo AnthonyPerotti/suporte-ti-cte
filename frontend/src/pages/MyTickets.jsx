@@ -25,7 +25,6 @@ const MyTickets = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
-  const [showArchived, setShowArchived] = useState(false);
 
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ const MyTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, ...(status && { status }), ...(search && { search }), archived: showArchived };
+      const params = { page, limit, ...(status && { status }), ...(search && { search }) };
       const { data } = await api.get('/tickets', { params });
       setTickets(data.tickets);
       setTotal(data.total);
@@ -47,7 +46,7 @@ const MyTickets = () => {
     }
   };
 
-  useEffect(() => { fetchTickets(); }, [page, status, search, showArchived]);
+  useEffect(() => { fetchTickets(); }, [page, status, search]);
 
   const pages = Math.ceil(total / limit);
 
@@ -87,13 +86,6 @@ const MyTickets = () => {
           <select className="form-select" style={{ width: 'auto' }} value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <button 
-            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-secondary'}`} 
-            style={{ fontWeight: 600, border: '1px solid var(--color-border)' }}
-            onClick={() => { setShowArchived(!showArchived); setPage(1); }}
-          >
-            {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
-          </button>
         </div>
 
         {/* Table */}
