@@ -176,7 +176,12 @@ const TicketDetail = () => {
   }
 
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
-  const nextStatuses = isStaff ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
+  
+  const canEdit = !isStaff || user.role === 'admin' || ticket.assignee_id === user.id;
+  const isUnassignedTech = isStaff && user.role === 'technician' && !ticket.assignee_id;
+  const isAssignedToOther = isStaff && user.role === 'technician' && ticket.assignee_id && ticket.assignee_id !== user.id;
+
+  const nextStatuses = (isStaff && canEdit) ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
 
   const timelineItems = [
     ...(ticket.events || []).map(e => ({ ...e, _itemType: 'event' })),
@@ -218,18 +223,15 @@ const TicketDetail = () => {
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Anexos</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {ticket.attachments.map(a => (
-                      <a
-                        key={a.id}
-                        href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="upload-file-item"
-                        style={{ textDecoration: 'none' }}
-                      >
-                        📎 {a.filename}
-                      </a>
-                    ))}
+                    {ticket.attachments.map(a => {
+                      const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`;
+                      const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+                      return (
+                        <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
+                          {isImage ? <img src={url} alt={a.filename} style={{ width: 100, height: 100, objectFit: 'cover' }} /> : `📎 ${a.filename}`}
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -285,18 +287,15 @@ const TicketDetail = () => {
                             {c.content}
                             {c.attachments?.length > 0 && (
                               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                {c.attachments.map(a => (
-                                  <a
-                                    key={a.id}
-                                    href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="upload-file-item"
-                                    style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}
-                                  >
-                                    📎 {a.filename}
-                                  </a>
-                                ))}
+                                {c.attachments.map(a => {
+                                  const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`;
+                                  const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+                                  return (
+                                    <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
+                                      {isImage ? <img src={url} alt={a.filename} style={{ width: 120, height: 120, objectFit: 'cover' }} /> : `📎 ${a.filename}`}
+                                    </a>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -314,6 +313,11 @@ const TicketDetail = () => {
                 <div className="card-title">
                   {isStaff ? 'Responder / Nota interna' : 'Responder'}
                 </div>
+                {!canEdit && isStaff ? (
+                  <div className="empty-state" style={{ padding: 24, margin: 0 }}>
+                    {isUnassignedTech ? 'Você precisa assumir este chamado para responder.' : 'Este chamado está atribuído a outro técnico.'}
+                  </div>
+                ) : (
                 <form onSubmit={submitComment}>
                   {isStaff && templates.length > 0 && (
                     <div className="form-group">
@@ -371,6 +375,7 @@ const TicketDetail = () => {
                     </button>
                   </div>
                 </form>
+                )}
               </div>
             )}
 
@@ -431,10 +436,22 @@ const TicketDetail = () => {
                 ) : (
                   <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>Não atribuído</p>
                 )}
-                <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
-                  <option value="">Sem atribuição</option>
-                  {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+                
+                {user.role === 'admin' ? (
+                  <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
+                    <option value="">Sem atribuição</option>
+                    {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                ) : (
+                  !ticket.assignee_id ? (
+                    <button className="btn btn-success btn-sm btn-full" onClick={() => assignTech(user.id)}>Aceitar Chamado</button>
+                  ) : ticket.assignee_id === user.id ? (
+                    <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
+                      <option value={user.id}>{user.name}</option>
+                      {technicians.filter(t => t.id !== user.id).map(t => <option key={t.id} value={t.id}>Tramitar para: {t.name}</option>)}
+                    </select>
+                  ) : null
+                )}
               </div>
             )}
 

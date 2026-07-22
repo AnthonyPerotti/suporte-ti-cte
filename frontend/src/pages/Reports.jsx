@@ -192,7 +192,7 @@ const Reports = () => {
           <div className="modal-content" style={{ maxWidth: 500 }}>
             <h2 className="modal-title" style={{ color: 'var(--color-danger)' }}>⚠️ ÁREA DE PERIGO - PURGAR DADOS</h2>
             <p style={{ marginBottom: 16 }}>
-              Você está prestes a <strong>EXCLUIR PERMANENTEMENTE</strong> todos os chamados no banco de dados criados entre <strong>{from}</strong> e <strong>{to}</strong>.
+              Você está prestes a <strong>EXCLUIR PERMANENTEMENTE</strong> todos os chamados no banco de dados criados entre <strong>{from.split('-').reverse().join('/')}</strong> e <strong>{to.split('-').reverse().join('/')}</strong>.
             </p>
             <p style={{ marginBottom: 16, color: 'var(--color-danger)' }}>
               <strong>AVISO: ESTA AÇÃO É IRREVERSÍVEL! OS DADOS NÃO PODERÃO SER RECUPERADOS.</strong>

@@ -27,6 +27,10 @@ const ticketSelect = {
   updated_at: true,
   closed_at: true,
   rating: true,
+  assignee_id: true,
+  category_id: true,
+  due_date: true,
+  is_archived: true,
   user: { select: { id: true, name: true, email: true, avatar_url: true } },
   assignee: { select: { id: true, name: true, email: true, avatar_url: true } },
   category: { select: { id: true, name: true, parent_id: true } },
@@ -34,14 +38,16 @@ const ticketSelect = {
 };
 
 const listTickets = async (req, res) => {
-  const { status, priority, category_id, assignee_id, search, page = 1, limit = 20 } = req.query;
+  const { status, priority, category_id, assignee_id, search, archived, page = 1, limit = 20 } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const isStaff = ['admin', 'technician'].includes(req.user.role);
 
   const where = {
+    is_archived: archived === 'true',
     // Regular users only see their own tickets
     ...(!isStaff && { user_id: req.user.id }),
-    ...(status && { status }),
+    ...(status && status !== 'active' && { status }),
+    ...(status === 'active' && { status: { notIn: ['resolved', 'closed'] } }),
     ...(priority && { priority }),
     ...(category_id && { category_id }),
     ...(assignee_id && { assignee_id }),
@@ -96,6 +102,11 @@ const getTicket = async (req, res) => {
   // Non-staff can only see their own tickets
   if (!isStaff && ticket.user_id !== req.user.id) {
     return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  // Filter internal events for non-staff
+  if (!isStaff && ticket.events) {
+    ticket.events = ticket.events.filter(e => !e.metadata || !e.metadata.is_internal);
   }
 
   return res.json({
@@ -230,8 +241,10 @@ const updateTicket = async (req, res) => {
 };
 
 const addComment = async (req, res) => {
-  const { content, is_internal = false } = req.body;
+  let { content, is_internal = false } = req.body;
   if (!content) return res.status(400).json({ error: 'Content is required' });
+
+  is_internal = is_internal === 'true' || is_internal === true;
 
   const isStaff = ['admin', 'technician'].includes(req.user.role);
   if (is_internal && !isStaff) return res.status(403).json({ error: 'Internal comments are staff-only' });

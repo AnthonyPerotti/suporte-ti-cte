@@ -7,6 +7,6 @@ router.get('/', ctrl.listEvents);
 router.get('/:id/links', ctrl.getEventLinks);
 router.post('/', authorize('admin', 'technician'), ctrl.createEvent);
 router.put('/:id', authorize('admin', 'technician'), ctrl.updateEvent);
-router.delete('/:id', authorize('admin'), ctrl.deleteEvent);
+router.delete('/:id', authorize('admin', 'technician'), ctrl.deleteEvent);
 
 module.exports = router;

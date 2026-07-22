@@ -55,6 +55,13 @@ const updateEvent = async (req, res) => {
 };
 
 const deleteEvent = async (req, res) => {
+  const event = await prisma.calendarEvent.findUnique({ where: { id: req.params.id } });
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+
+  if (req.user.role === 'technician' && event.created_by !== req.user.id) {
+    return res.status(403).json({ error: 'Technicians can only delete their own events' });
+  }
+
   await prisma.calendarEvent.delete({ where: { id: req.params.id } });
   return res.json({ message: 'Event deleted' });
 };

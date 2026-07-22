@@ -898,3 +898,25 @@ img, svg { display: block; }
 
 .suggest-item-title { font-weight: 500; color: var(--color-text); }
 .suggest-item-meta  { font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px; }
+
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  margin: 16px 0;
+  border: 1px solid var(--color-border);
+}
+
+.markdown-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.markdown-content ul, .markdown-content ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+
+.markdown-content p {
+  margin-bottom: 16px;
+}

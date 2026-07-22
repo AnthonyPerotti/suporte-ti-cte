@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import ReactMarkdown from 'react-markdown';
 
 const KnowledgeDetail = () => {
   const { id } = useParams();
@@ -232,8 +233,8 @@ const KnowledgeDetail = () => {
               </div>
             </div>
             
-            <div style={{ fontSize: '1rem', lineHeight: 1.8, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
-              {article?.content}
+            <div style={{ fontSize: '1rem', lineHeight: 1.8, color: 'var(--color-text)', marginTop: 24 }} className="markdown-content">
+              <ReactMarkdown>{article?.content}</ReactMarkdown>
             </div>
             
             <div className="divider" />

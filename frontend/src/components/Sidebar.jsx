@@ -81,7 +81,13 @@ const Sidebar = () => {
 
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">{getInitials(user?.name)}</div>
+          <div className="sidebar-avatar">
+            {user?.avatar_url ? (
+              <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${user.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              getInitials(user?.name)
+            )}
+          </div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">{user?.name}</div>
             <div className="sidebar-user-role">{roleLabels[user?.role]}</div>

@@ -7,6 +7,7 @@ import { useToast } from '../contexts/ToastContext';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
+  { value: 'active', label: 'Ativos' },
   { value: 'open', label: 'Aberto' },
   { value: 'in_progress', label: 'Em Atendimento' },
   { value: 'waiting_user', label: 'Aguardando Usuário' },
@@ -22,10 +23,11 @@ const AdminTickets = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState('active');
   const [search, setSearch] = useState('');
   const [technicians, setTechnicians] = useState([]);
   const [assigneeId, setAssigneeId] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
   
   const navigate = useNavigate();
   const toast = useToast();
@@ -34,7 +36,7 @@ const AdminTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, ...(status && { status }), ...(search && { search }), ...(assigneeId && { assignee_id: assigneeId }) };
+      const params = { page, limit, ...(status && { status }), ...(search && { search }), ...(assigneeId && { assignee_id: assigneeId }), archived: showArchived };
       const { data } = await api.get('/tickets', { params });
       setTickets(data.tickets);
       setTotal(data.total);
@@ -49,7 +51,7 @@ const AdminTickets = () => {
     api.get('/users/technicians').then(({ data }) => setTechnicians(data)).catch(() => {});
   }, []);
 
-  useEffect(() => { fetchTickets(); }, [page, status, search, assigneeId]);
+  useEffect(() => { fetchTickets(); }, [page, status, search, assigneeId, showArchived]);
 
   const pages = Math.ceil(total / limit);
 
@@ -87,6 +89,12 @@ const AdminTickets = () => {
             <option value="">Qualquer técnico</option>
             {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
+          <button 
+            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-ghost'}`} 
+            onClick={() => { setShowArchived(!showArchived); setPage(1); }}
+          >
+            {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
+          </button>
         </div>
 
         {loading ? (
@@ -103,6 +111,7 @@ const AdminTickets = () => {
                     <th>Título</th>
                     <th>Solicitante</th>
                     <th>Técnico</th>
+                    <th>Prioridade</th>
                     <th>Status</th>
                     <th>Prazo</th>
                     <th>Aberto em</th>
@@ -130,6 +139,7 @@ const AdminTickets = () => {
                           </div>
                         ) : <span className="text-muted text-sm">—</span>}
                       </td>
+                      <td><PriorityBadge priority={t.priority} /></td>
                       <td><StatusBadge status={t.status} /></td>
                       <td><SlaBadge sla_status={t.sla_status} /></td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(t.created_at)}</td>
