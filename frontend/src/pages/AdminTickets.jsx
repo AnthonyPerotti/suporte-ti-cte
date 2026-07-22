@@ -57,9 +57,14 @@ const AdminTickets = () => {
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
-        <div className="page-header">
-          <h1 className="page-title">Fila de Chamados</h1>
-          <p className="page-subtitle">Gerencie todos os atendimentos do sistema.</p>
+        <div className="page-header flex justify-between items-center">
+          <div>
+            <h1 className="page-title">Fila de Chamados</h1>
+            <p className="page-subtitle">Gerencie todos os atendimentos do sistema.</p>
+          </div>
+          <button className="btn btn-secondary" onClick={fetchTickets} disabled={loading}>
+            ↻ Recarregar
+          </button>
         </div>
 
         <div className="filter-row">

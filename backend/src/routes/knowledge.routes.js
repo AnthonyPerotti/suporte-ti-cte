@@ -6,8 +6,11 @@ router.use(authenticate);
 router.get('/suggest', ctrl.suggestArticles);
 router.get('/', ctrl.listArticles);
 router.get('/:id', ctrl.getArticle);
+const upload = require('../middlewares/upload.middleware');
+
+router.post('/upload', authorize('admin', 'technician'), upload.single('file'), ctrl.uploadMedia);
 router.post('/', authorize('admin', 'technician'), ctrl.createArticle);
 router.put('/:id', authorize('admin', 'technician'), ctrl.updateArticle);
-router.delete('/:id', authorize('admin'), ctrl.deleteArticle);
+router.delete('/:id', authorize('admin', 'technician'), ctrl.deleteArticle);
 
 module.exports = router;

@@ -37,9 +37,11 @@ const TicketDetail = () => {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState('');
+  const [attachments, setAttachments] = useState([]);
   const [isInternal, setIsInternal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [rating, setRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [technicians, setTechnicians] = useState([]);
@@ -69,11 +71,24 @@ const TicketDetail = () => {
 
   const submitComment = async (e) => {
     e.preventDefault();
-    if (!comment.trim()) return;
+    if (!comment.trim() && attachments.length === 0) return;
     setSubmitting(true);
     try {
-      await api.post(`/tickets/${id}/comments`, { content: comment, is_internal: isInternal });
+      const formData = new FormData();
+      formData.append('content', comment || 'Anexo enviado');
+      formData.append('is_internal', isInternal);
+      Array.from(attachments).forEach(file => {
+        formData.append('attachments', file);
+      });
+
+      await api.post(`/tickets/${id}/comments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       setComment('');
+      setAttachments([]);
+      
+      // If we are sending a normal response (not internal), and the ticket is in waiting_user, we can auto-switch to in_progress if user replies, 
+      // but let's just reload for now
       await load();
       toast.success('Resposta enviada');
     } catch (err) {
@@ -81,6 +96,12 @@ const TicketDetail = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleJitsiMeet = () => {
+    const roomName = `SuporteTI-${id}-${Math.random().toString(36).substring(2,8)}`;
+    const jitsiUrl = `https://meet.jit.si/${roomName}`;
+    setComment(prev => `${prev}\n\nAcesse a sala de reunião: ${jitsiUrl}`);
   };
 
   const updateStatus = async (status) => {
@@ -103,16 +124,44 @@ const TicketDetail = () => {
     }
   };
 
+  const updateTicketData = async (data) => {
+    try {
+      await api.put(`/tickets/${id}`, data);
+      await load();
+      toast.success('Chamado atualizado');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro ao atualizar');
+    }
+  };
+
   const submitRating = async () => {
     if (!rating) return;
     try {
-      await api.post(`/tickets/${id}/rate`, { rating });
+      await api.post(`/tickets/${id}/rate`, { rating, comment: ratingComment });
       setRatingSubmitted(true);
       await load();
       toast.success('Avaliação enviada!');
     } catch {
       toast.error('Erro ao avaliar chamado');
     }
+  };
+
+  const archiveTicket = async () => {
+    if (!window.confirm('Arquivar este chamado? Ele sairá da lista principal.')) return;
+    try {
+      await api.patch(`/tickets/${id}/archive`);
+      toast.success('Chamado arquivado');
+      navigate('/');
+    } catch { toast.error('Erro ao arquivar'); }
+  };
+
+  const deleteTicket = async () => {
+    if (!window.confirm('EXCLUIR PERMANENTEMENTE este chamado? Isso NÃO pode ser desfeito!')) return;
+    try {
+      await api.delete(`/tickets/${id}`);
+      toast.success('Chamado excluído');
+      navigate('/');
+    } catch { toast.error('Erro ao excluir'); }
   };
 
   if (loading) {
@@ -138,7 +187,10 @@ const TicketDetail = () => {
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>← Voltar</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <button className="btn btn-ghost btn-sm" onClick={() => navigate(-1)}>← Voltar</button>
+          <button className="btn btn-ghost btn-sm" onClick={load}>↻ Recarregar</button>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24 }}>
           {/* Left: ticket details + timeline */}
@@ -231,6 +283,22 @@ const TicketDetail = () => {
                           </div>
                           <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
                             {c.content}
+                            {c.attachments?.length > 0 && (
+                              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                {c.attachments.map(a => (
+                                  <a
+                                    key={a.id}
+                                    href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="upload-file-item"
+                                    style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)' }}
+                                  >
+                                    📎 {a.filename}
+                                  </a>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -257,6 +325,12 @@ const TicketDetail = () => {
                     </div>
                   )}
 
+                    {isStaff && (
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleJitsiMeet} style={{ marginBottom: 12 }}>
+                        🎥 Gerar Link Jitsi Meet
+                      </button>
+                    )}
+
                   <div className="form-group">
                     <textarea
                       className="form-textarea"
@@ -267,14 +341,31 @@ const TicketDetail = () => {
                     />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="form-group">
+                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                      <span style={{ fontSize: '1.2rem' }}>📎</span> Anexar arquivos
+                      <input 
+                        type="file" 
+                        multiple 
+                        onChange={e => setAttachments(e.target.files)} 
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {attachments.length > 0 && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+                        {attachments.length} arquivo(s) selecionado(s)
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
                     {isStaff && (
                       <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                         <input type="checkbox" checked={isInternal} onChange={e => setIsInternal(e.target.checked)} />
                         Nota interna (invisível para o usuário)
                       </label>
                     )}
-                    <button type="submit" className="btn btn-primary" disabled={submitting || !comment.trim()} style={{ marginLeft: 'auto' }}>
+                    <button type="submit" className="btn btn-primary" disabled={submitting || (!comment.trim() && attachments.length === 0)} style={{ marginLeft: 'auto' }}>
                       {submitting ? <span className="spinner" /> : null}
                       Enviar
                     </button>
@@ -294,6 +385,15 @@ const TicketDetail = () => {
                   {[1,2,3,4,5].map(s => (
                     <span key={s} className={`star${s <= rating ? ' filled' : ''}`} onClick={() => setRating(s)}>★</span>
                   ))}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Comentário (opcional)</label>
+                  <textarea 
+                    className="form-textarea" 
+                    value={ratingComment} 
+                    onChange={e => setRatingComment(e.target.value)} 
+                    placeholder="Conte-nos como foi a sua experiência..."
+                  />
                 </div>
                 <button className="btn btn-primary" onClick={submitRating} disabled={!rating}>
                   Enviar avaliação
@@ -348,6 +448,42 @@ const TicketDetail = () => {
                       {STATUS_LABELS[s]}
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {/* Properties */}
+            {isStaff && (
+              <div className="card" style={{ marginBottom: 16 }}>
+                <div className="card-title">Propriedades</div>
+                <div className="form-group">
+                  <label className="form-label">Prioridade</label>
+                  <select className="form-select" value={ticket.priority} onChange={e => updateTicketData({ priority: e.target.value })}>
+                    <option value="low">Baixa</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">Alta</option>
+                    <option value="urgent">Urgente</option>
+                  </select>
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Data Limite (Due Date)</label>
+                  <input 
+                    type="date" 
+                    className="form-input" 
+                    value={ticket.due_date ? ticket.due_date.split('T')[0] : ''} 
+                    onChange={e => updateTicketData({ due_date: e.target.value || null })} 
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Admin Actions */}
+            {user?.role === 'admin' && (
+              <div className="card" style={{ marginBottom: 16, borderColor: 'var(--color-danger)', background: 'rgba(239,68,68,0.02)' }}>
+                <div className="card-title" style={{ color: 'var(--color-danger)' }}>Admin</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <button className="btn btn-secondary btn-sm" onClick={archiveTicket}>Arquivar Chamado</button>
+                  <button className="btn btn-danger btn-sm" onClick={deleteTicket}>🗑️ Excluir Definitivamente</button>
                 </div>
               </div>
             )}

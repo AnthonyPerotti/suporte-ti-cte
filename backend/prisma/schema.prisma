@@ -79,6 +79,7 @@ model Category {
   name        String
   description String?
   parent_id   String?
+  is_archived Boolean    @default(false)
   created_at  DateTime   @default(now())
 
   parent      Category?  @relation("CategoryHierarchy", fields: [parent_id], references: [id])
@@ -100,6 +101,8 @@ model Ticket {
   assignee_id  String?
   rating       Int?
   rating_comment String?
+  due_date     DateTime?
+  is_archived  Boolean       @default(false)
   closed_at    DateTime?
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
@@ -117,13 +120,15 @@ model Ticket {
 model TicketAttachment {
   id         String   @id @default(uuid())
   ticket_id  String
+  comment_id String?
   filename   String
   path       String
   mimetype   String
   size       Int
   created_at DateTime @default(now())
 
-  ticket     Ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  ticket     Ticket         @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  comment    TicketComment? @relation(fields: [comment_id], references: [id], onDelete: Cascade)
 
   @@map("ticket_attachments")
 }
@@ -139,6 +144,7 @@ model TicketComment {
 
   ticket      Ticket   @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
   author      User     @relation(fields: [author_id], references: [id])
+  attachments TicketAttachment[]
 
   @@map("ticket_comments")
 }
@@ -161,6 +167,7 @@ model Template {
   id         String   @id @default(uuid())
   title      String
   content    String
+  is_archived Boolean @default(false)
   created_by String
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

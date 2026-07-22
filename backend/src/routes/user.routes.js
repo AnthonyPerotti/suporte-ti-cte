@@ -9,8 +9,8 @@ const upload = require('../middlewares/upload.middleware');
 router.get('/technicians', ctrl.getTechnicians);
 router.get('/', authorize('admin'), ctrl.listUsers);
 router.get('/:id', ctrl.getUser);
-router.post('/', authorize('admin'), ctrl.createUser);
+router.post('/', authorize('admin', 'technician'), ctrl.createUser);
 router.put('/:id', upload.single('avatar'), ctrl.updateUser);
-router.post('/:id/reset-password', authorize('admin'), ctrl.resetPassword);
+router.post('/:id/reset-password', authorize('admin', 'technician'), ctrl.resetPassword);
 
 module.exports = router;

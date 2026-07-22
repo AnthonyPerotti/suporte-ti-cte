@@ -49,6 +49,11 @@ const createUser = async (req, res) => {
     return res.status(400).json({ error: 'Name, email and temp_password are required' });
   }
 
+  // Technician can only create normal users
+  if (req.user.role === 'technician' && role !== 'user') {
+    return res.status(403).json({ error: 'Técnicos só podem criar usuários comuns' });
+  }
+
   const domain = email.split('@')[1];
   if (!ALLOWED_DOMAINS.includes(domain)) {
     return res.status(400).json({ error: 'Email domain not allowed. Use @ufsm.br or @cead.ufsm.br' });
@@ -132,8 +137,14 @@ const updateUser = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   const { temp_password } = req.body;
-  if (!temp_password || temp_password.length < 4) {
-    return res.status(400).json({ error: 'Temporary password must be at least 4 characters' });
+  if (!temp_password) return res.status(400).json({ error: 'New temp password is required' });
+
+  const targetUser = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+  // Technician can only reset password for normal users
+  if (req.user.role === 'technician' && targetUser.role !== 'user') {
+    return res.status(403).json({ error: 'Técnicos só podem resetar senha de usuários comuns' });
   }
 
   const hash = await bcrypt.hash(temp_password, 12);

@@ -59,9 +59,14 @@ const MyTickets = () => {
             <h1 className="page-title">Meus Chamados</h1>
             <p className="page-subtitle">Olá, {user?.name?.split(' ')[0]}. Acompanhe seus atendimentos.</p>
           </div>
-          <button className="btn btn-primary" onClick={() => navigate('/new-ticket')}>
-            + Abrir Chamado
-          </button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-secondary" onClick={fetchTickets} disabled={loading}>
+              ↻ Recarregar
+            </button>
+            <button className="btn btn-primary" onClick={() => navigate('/new-ticket')}>
+              + Abrir Chamado
+            </button>
+          </div>
         </div>
 
         {/* Filters */}

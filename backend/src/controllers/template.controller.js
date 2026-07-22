@@ -2,7 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const listTemplates = async (req, res) => {
+  const { archived } = req.query;
+  const isAdmin = req.user?.role === 'admin';
+  const showArchived = archived === 'true' && isAdmin;
+
   const templates = await prisma.template.findMany({
+    where: { is_archived: showArchived },
     include: { author: { select: { id: true, name: true } } },
     orderBy: { title: 'asc' },
   });
@@ -30,8 +35,13 @@ const updateTemplate = async (req, res) => {
 };
 
 const deleteTemplate = async (req, res) => {
-  await prisma.template.delete({ where: { id: req.params.id } });
-  return res.json({ message: 'Template deleted' });
+  await prisma.template.update({ where: { id: req.params.id }, data: { is_archived: true } });
+  return res.json({ message: 'Template archived' });
 };
 
-module.exports = { listTemplates, createTemplate, updateTemplate, deleteTemplate };
+const restoreTemplate = async (req, res) => {
+  await prisma.template.update({ where: { id: req.params.id }, data: { is_archived: false } });
+  return res.json({ message: 'Template restored' });
+};
+
+module.exports = { listTemplates, createTemplate, updateTemplate, deleteTemplate, restoreTemplate };

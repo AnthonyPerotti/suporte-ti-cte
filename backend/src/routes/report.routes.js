@@ -7,4 +7,6 @@ router.get('/dashboard', ctrl.getDashboard);
 router.get('/', ctrl.getReports);
 router.get('/export', ctrl.exportCsv);
 
+router.post('/purge', authorize('admin'), ctrl.purgeTickets);
+
 module.exports = router;

@@ -92,6 +92,29 @@ const KnowledgeDetail = () => {
     }
   };
 
+  const handleMediaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const { data } = await api.post('/knowledge/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${data.url}`;
+      
+      const isImage = file.type.startsWith('image/');
+      const markdown = isImage ? `\n![${file.name}](${url})\n` : `\n[${file.name}](${url})\n`;
+      
+      setFormData(p => ({ ...p, content: p.content + markdown }));
+      toast.success('Mídia anexada');
+    } catch {
+      toast.error('Erro ao fazer upload da mídia');
+    }
+  };
+
   const handleArchive = async () => {
     if (!confirm('Deseja realmente excluir (arquivar) este artigo?')) return;
     try {
@@ -139,7 +162,13 @@ const KnowledgeDetail = () => {
             </div>
             
             <div className="form-group">
-              <label className="form-label">Conteúdo (Suporta texto simples)</label>
+              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                Conteúdo (Suporta texto simples e links Markdown)
+                <label style={{ cursor: 'pointer', color: 'var(--color-primary)', fontSize: '0.875rem' }}>
+                  📎 Anexar Imagem/Arquivo
+                  <input type="file" onChange={handleMediaUpload} style={{ display: 'none' }} />
+                </label>
+              </label>
               <textarea className="form-textarea" required style={{ minHeight: 400, fontFamily: 'monospace', fontSize: '0.9rem' }} value={formData.content} onChange={e => setFormData(p => ({ ...p, content: e.target.value }))} />
             </div>
             

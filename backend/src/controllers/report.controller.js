@@ -147,4 +147,27 @@ const getDashboard = async (req, res) => {
   });
 };
 
-module.exports = { getReports, exportCsv, getDashboard };
+const bcrypt = require('bcryptjs');
+
+const purgeTickets = async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+
+  const { from, to, password } = req.body;
+  if (!from || !to || !password) return res.status(400).json({ error: 'Missing parameters' });
+
+  const adminUser = await prisma.user.findUnique({ where: { id: req.user.id } });
+  const valid = await bcrypt.compare(password, adminUser.password_hash);
+  if (!valid) return res.status(401).json({ error: 'Senha incorreta' });
+
+  const startDate = new Date(from);
+  const endDate = new Date(to);
+  endDate.setHours(23, 59, 59, 999);
+
+  const result = await prisma.ticket.deleteMany({
+    where: { created_at: { gte: startDate, lte: endDate } },
+  });
+
+  return res.json({ message: `Purged ${result.count} tickets successfully`, count: result.count });
+};
+
+module.exports = { getReports, exportCsv, getDashboard, purgeTickets };

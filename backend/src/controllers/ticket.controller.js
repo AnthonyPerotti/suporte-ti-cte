@@ -159,24 +159,38 @@ const createTicket = async (req, res) => {
 
 const updateTicket = async (req, res) => {
   const isStaff = ['admin', 'technician'].includes(req.user.role);
-  const { status, priority, assignee_id, category_id } = req.body;
 
   if (!isStaff) return res.status(403).json({ error: 'Forbidden' });
 
   const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
   if (!current) return res.status(404).json({ error: 'Ticket not found' });
 
+  const { status, priority, assignee_id, category_id, due_date } = req.body;
   const data = {};
   const events = [];
 
   if (status && status !== current.status) {
+    // If ticket is reopened (was closed/resolved, now open/in_progress)
+    if (['resolved', 'closed'].includes(current.status) && ['open', 'in_progress'].includes(status)) {
+      data.rating = null;
+      data.rating_comment = null;
+    }
+    
+    if (status === 'closed' || status === 'resolved') {
+      data.closed_at = new Date();
+    } else {
+      data.closed_at = null;
+    }
     data.status = status;
-    if (status === 'closed' || status === 'resolved') data.closed_at = new Date();
-    events.push({ type: 'status_change', metadata: { from: current.status, to: status } });
+    events.push({ type: 'status_change', metadata: { old: current.status, new: status } });
   }
 
   if (priority && priority !== current.priority) {
     data.priority = priority;
+  }
+  
+  if (due_date !== undefined) {
+    data.due_date = due_date ? new Date(due_date) : null;
   }
 
   if (assignee_id !== undefined && assignee_id !== current.assignee_id) {
@@ -242,8 +256,26 @@ const addComment = async (req, res) => {
       content,
       is_internal: Boolean(is_internal),
     },
-    include: { author: { select: { id: true, name: true, avatar_url: true, role: true } } },
+    include: { author: { select: { id: true, name: true, avatar_url: true, role: true } }, attachments: true },
   });
+
+  // Handle attachments
+  if (req.files && req.files.length > 0) {
+    for (const file of req.files) {
+      const attachment = await prisma.ticketAttachment.create({
+        data: {
+          ticket_id: ticket.id,
+          comment_id: comment.id,
+          filename: file.originalname,
+          path: `/uploads/${file.filename}`,
+          mimetype: file.mimetype,
+          size: file.size,
+        },
+      });
+      if (!comment.attachments) comment.attachments = [];
+      comment.attachments.push(attachment);
+    }
+  }
 
   await prisma.ticketEvent.create({
     data: {
@@ -297,4 +329,20 @@ const rateTicket = async (req, res) => {
   return res.json(updated);
 };
 
-module.exports = { listTickets, getTicket, createTicket, updateTicket, addComment, rateTicket };
+const archiveTicket = async (req, res) => {
+  const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  
+  await prisma.ticket.update({ where: { id: req.params.id }, data: { is_archived: true } });
+  return res.json({ message: 'Ticket archived' });
+};
+
+const deleteTicket = async (req, res) => {
+  const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+  if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+  
+  await prisma.ticket.delete({ where: { id: req.params.id } });
+  return res.json({ message: 'Ticket deleted' });
+};
+
+module.exports = { listTickets, getTicket, createTicket, updateTicket, addComment, rateTicket, archiveTicket, deleteTicket };

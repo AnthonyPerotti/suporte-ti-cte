@@ -3,12 +3,12 @@
 Sistema completo de suporte técnico interno e base de conhecimento.
 
 ## Recursos Principais
-- **Abertura e Gestão de Chamados:** Fluxo completo para usuários abrirem tickets, com atribuição a técnicos, prazos estipulados, avaliação de atendimento e um histórico unificado (timeline) ordenado. (Prioridades de chamados restritas à equipe técnica).
-- **Base de Conhecimento:** Sistema de artigos com suporte a pesquisa, categorias, tags e controle de acesso hierárquico (rascunhos e arquivamento via soft delete disponíveis para gestão).
+- **Abertura e Gestão de Chamados:** Fluxo completo para usuários abrirem tickets, com atribuição a técnicos, prazos estipulados (due date), avaliação de atendimento com comentários e um histórico unificado (timeline) ordenado. Prioridades e prazos são definidos exclusivamente pela equipe técnica.
+- **Base de Conhecimento e Respostas Rápidas:** Sistema de artigos com suporte a pesquisa, anexos de mídia (imagens e arquivos), formatação markdown e controle de acesso hierárquico. Categorias, templates e artigos possuem exclusão lógica (soft delete / arquivamento).
+- **Anexos e Comunicação:** Envio de imagens e documentos via chamados e respostas (integração Multer/upload local). Possui geração rápida de salas de conferência (Jitsi Meet) integradas na timeline para suporte remoto imediato.
 - **Agenda Google:** Integração com gerador de links para criação rápida de eventos no Google Agenda com fusos horários ajustados automaticamente.
-- **Perfil de Usuário:** Gestão autônoma de perfil, onde o usuário pode alterar sua foto (avatar), nome, e-mail e senha de forma simplificada e independente.
-- **Identidade Visual Customizada:** Interface limpa, responsiva, com a identidade do CTE (Coordenadoria de Tecnologia Educacional) e indicadores amigáveis de prazos.
-- **Controle de Permissões:** Três níveis de acesso (Admin, Técnico e Usuário) para separação adequada de responsabilidades e visões do sistema.
+- **Perfil de Usuário:** Gestão autônoma de perfil, onde o usuário pode alterar sua foto (avatar), nome, e-mail e senha de forma simplificada e independente, com limpeza automática da foto de perfil antiga do servidor ao atualizar.
+- **Controle de Permissões Rigoroso:** Três níveis de acesso (Admin, Técnico e Usuário). O Técnico pode criar apenas Usuários (não técnicos) e redefinir suas senhas. Ações irreversíveis (exclusão permanente de tickets, expurgo em massa "Purga") exigem autenticação dupla e estão restritas ao nível Administrador.
 
 ## Arquitetura
 - **Backend:** Node.js, Express, Prisma, PostgreSQL

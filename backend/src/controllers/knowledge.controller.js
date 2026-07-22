@@ -94,4 +94,10 @@ const deleteArticle = async (req, res) => {
   return res.json({ message: 'Article archived' });
 };
 
-module.exports = { listArticles, getArticle, suggestArticles, createArticle, updateArticle, deleteArticle };
+const uploadMedia = async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const fileUrl = `/uploads/${req.file.filename}`;
+  return res.json({ url: fileUrl });
+};
+
+module.exports = { listArticles, getArticle, suggestArticles, createArticle, updateArticle, deleteArticle, uploadMedia };
