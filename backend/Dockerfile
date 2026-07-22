@@ -1,7 +1,7 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
-RUN rm -f package-lock.json && npm install --omit=dev
+RUN rm -f package-lock.json && npm install
 
 FROM node:20-alpine
 WORKDIR /app
