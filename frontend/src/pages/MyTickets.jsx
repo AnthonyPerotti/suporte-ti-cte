@@ -8,8 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos os status' },
-  { value: 'active', label: 'Abertos (Filtro)' },
-  { value: 'open', label: 'Novo (Aberto)' },
+  { value: 'active', label: 'Aberto' },
   { value: 'in_progress', label: 'Em Atendimento' },
   { value: 'waiting_user', label: 'Aguardando Usuário' },
   { value: 'resolved', label: 'Resolvido' },

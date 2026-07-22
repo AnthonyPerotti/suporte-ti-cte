@@ -4,11 +4,11 @@ import Sidebar from '../components/Sidebar';
 import { StatusBadge, PriorityBadge, SlaBadge } from '../components/Badges';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
-  { value: 'active', label: 'Abertos (Filtro)' },
-  { value: 'open', label: 'Novo (Aberto)' },
+  { value: 'active', label: 'Aberto' },
   { value: 'in_progress', label: 'Em Atendimento' },
   { value: 'waiting_user', label: 'Aguardando Usuário' },
   { value: 'resolved', label: 'Resolvido' },
@@ -31,6 +31,7 @@ const AdminTickets = () => {
   
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
   const limit = 15;
 
   const fetchTickets = async () => {
@@ -89,13 +90,15 @@ const AdminTickets = () => {
             <option value="">Qualquer técnico</option>
             {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
-          <button 
-            className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-secondary'}`} 
-            style={{ fontWeight: 600, border: '1px solid var(--color-border)' }}
-            onClick={() => { setShowArchived(!showArchived); setPage(1); }}
-          >
-            {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
-          </button>
+          {user?.role === 'admin' && (
+            <button 
+              className={`btn btn-sm ${showArchived ? 'btn-danger' : 'btn-secondary'}`} 
+              style={{ fontWeight: 600, border: '1px solid var(--color-border)' }}
+              onClick={() => { setShowArchived(!showArchived); setPage(1); }}
+            >
+              {showArchived ? 'Ocultar Arquivados' : 'Mostrar Arquivados'}
+            </button>
+          )}
         </div>
 
         {loading ? (
