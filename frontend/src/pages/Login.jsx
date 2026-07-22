@@ -32,12 +32,14 @@ const LoginPage = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--color-bg)',
+      background: 'url(/src/assets/wallpaper-cte.png) center/cover no-repeat fixed',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px',
     }}>
+      {/* Dark overlay for better readability */}
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', pointerEvents: 'none' }} />
       {/* Background decoration */}
       <div style={{
         position: 'fixed',
@@ -67,28 +69,8 @@ const LoginPage = () => {
 
       <div style={{ width: '100%', maxWidth: 400, position: 'relative' }}>
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
-            width: 56,
-            height: 56,
-            borderRadius: 16,
-            background: 'linear-gradient(135deg, #1e40af, #2563eb)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-            boxShadow: '0 8px 24px rgba(37,99,235,0.4)',
-          }}>
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
-            Suporte TI CTE
-          </h1>
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginTop: 4 }}>
-            CEAD · Universidade Federal de Santa Maria
-          </p>
+        <div style={{ textAlign: 'center', marginBottom: 40, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <img src="/src/assets/cte-logo-full.png" alt="CTE Logo" style={{ maxWidth: 280, filter: 'drop-shadow(0px 4px 12px rgba(0,0,0,0.5))' }} />
         </div>
 
         {/* Card */}

@@ -66,7 +66,7 @@ const getGoogleCalendarUrl = (event) => {
     text: event.title,
     dates: `${fmt(event.start_at)}/${fmt(event.end_at)}`,
     details: event.description || '',
-    location: 'CEAD/UFSM',
+    location: 'CTE - Coordenadoria de Tecnologia Educacional, Av. Roraima, 1000 - Edif 14 - Camobi, Santa Maria - RS, 97105-900, Brasil',
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 };

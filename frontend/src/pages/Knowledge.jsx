@@ -100,7 +100,8 @@ const Knowledge = () => {
                     </h3>
                     <div className="flex gap-8 items-center flex-wrap" style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
                       {a.category && <span className="badge badge-normal">{a.category.name}</span>}
-                      {isStaff && isAdminRoute && !a.published && <span className="badge badge-warning">Rascunho</span>}
+                      {isStaff && isAdminRoute && a.is_archived && <span className="badge badge-danger">Arquivado</span>}
+                      {isStaff && isAdminRoute && !a.published && !a.is_archived && <span className="badge badge-warning">Rascunho</span>}
                       {a.created_at && <span>{formatDate(a.created_at)}</span>}
                     </div>
                     {a.tags && a.tags.length > 0 && (

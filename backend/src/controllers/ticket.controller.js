@@ -76,7 +76,7 @@ const getTicket = async (req, res) => {
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: req.params.id },
-    include: {
+    select: {
       ...ticketSelect,
       comments: {
         where: isStaff ? {} : { is_internal: false },
@@ -87,10 +87,6 @@ const getTicket = async (req, res) => {
         include: { actor: { select: { id: true, name: true, role: true } } },
         orderBy: { created_at: 'asc' },
       },
-      user: { select: { id: true, name: true, email: true, avatar_url: true } },
-      assignee: { select: { id: true, name: true, email: true, avatar_url: true } },
-      category: { select: { id: true, name: true, parent_id: true } },
-      attachments: true,
     },
   });
 

@@ -77,6 +77,7 @@ const KnowledgeDetail = () => {
       if (isNew) {
         const { data } = await api.post('/knowledge', payload);
         toast.success('Artigo criado com sucesso');
+        setIsEditing(false);
         navigate(`/admin/knowledge/${data.id}`);
       } else {
         await api.put(`/knowledge/${id}`, payload);
@@ -91,14 +92,25 @@ const KnowledgeDetail = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Deseja realmente excluir este artigo?')) return;
+  const handleArchive = async () => {
+    if (!confirm('Deseja realmente excluir (arquivar) este artigo?')) return;
     try {
       await api.delete(`/knowledge/${id}`);
-      toast.success('Artigo excluído');
+      toast.success('Artigo excluído e arquivado');
       navigate('/admin/knowledge');
     } catch {
       toast.error('Erro ao excluir artigo');
+    }
+  };
+
+  const handleRestore = async () => {
+    if (!confirm('Deseja restaurar este artigo?')) return;
+    try {
+      await api.put(`/knowledge/${id}`, { is_archived: false });
+      toast.success('Artigo restaurado');
+      load();
+    } catch {
+      toast.error('Erro ao restaurar artigo');
     }
   };
 
@@ -165,11 +177,18 @@ const KnowledgeDetail = () => {
               <div className="flex justify-between items-start mb-24 pb-16" style={{ borderBottom: '1px solid var(--color-border)' }}>
                 <div className="flex gap-8 items-center">
                   <span className="badge badge-normal">Modo Admin</span>
-                  {!article?.published && <span className="badge badge-warning">Rascunho não publicado</span>}
+                  {article?.is_archived && <span className="badge badge-danger">Arquivado</span>}
+                  {!article?.published && !article?.is_archived && <span className="badge badge-warning">Rascunho não publicado</span>}
                 </div>
                 <div className="flex gap-8">
-                  <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(true)}>Editar Artigo</button>
-                  <button className="btn btn-danger btn-sm" onClick={handleDelete}>Excluir</button>
+                  {article?.is_archived ? (
+                    user?.role === 'admin' && <button className="btn btn-secondary btn-sm" onClick={handleRestore}>Restaurar</button>
+                  ) : (
+                    <>
+                      <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(true)}>Editar Artigo</button>
+                      <button className="btn btn-danger btn-sm" onClick={handleArchive}>Excluir</button>
+                    </>
+                  )}
                 </div>
               </div>
             )}

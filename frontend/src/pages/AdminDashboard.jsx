@@ -80,8 +80,8 @@ const AdminDashboard = () => {
           <StatCard label="Total em Aberto"  value={dashboard?.total_open}    color="var(--color-primary)" icon="📋" />
           <StatCard label="Em Atendimento"   value={dashboard?.in_progress}   color="var(--color-warning)" icon="🔧" />
           <StatCard label="Aguardando"       value={dashboard?.waiting_user}  color="#a78bfa"              icon="⏳" />
-          <StatCard label="SLA Crítico 48h+" value={dashboard?.sla_critical} color="var(--color-danger)"  icon="🔴" />
-          <StatCard label="SLA Atenção 24h+" value={dashboard?.sla_warning}  color="var(--color-warning)" icon="🟡" />
+          <StatCard label="Prazo Crítico 48h+" value={dashboard?.sla_critical} color="var(--color-danger)"  icon="🔴" />
+          <StatCard label="Prazo Atenção 24h+" value={dashboard?.sla_warning}  color="var(--color-warning)" icon="🟡" />
         </div>
 
         {/* Chart + recent tickets */}
@@ -166,7 +166,7 @@ const AdminDashboard = () => {
                     <th>Solicitante</th>
                     <th>Status</th>
                     <th>Prioridade</th>
-                    <th>SLA</th>
+                    <th>Prazo</th>
                     <th>Aberto em</th>
                   </tr>
                 </thead>

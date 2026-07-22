@@ -142,7 +142,7 @@ const TicketDetail = () => {
             <div className="card" style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
                 <StatusBadge status={ticket.status} />
-                <PriorityBadge priority={ticket.priority} />
+                {isStaff && <PriorityBadge priority={ticket.priority} />}
                 <SlaBadge sla_status={ticket.sla_status} />
               </div>
               <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 8 }}>{ticket.title}</h1>

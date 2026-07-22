@@ -48,11 +48,7 @@ const Sidebar = () => {
     <aside className="sidebar">
       <div className="sidebar-logo">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #1e40af, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
+          <img src="/src/assets/cte-logo.png" alt="CTE Logo" style={{ width: 40, height: 'auto', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' }} />
           <div>
             <div className="sidebar-logo-text">Suporte TI</div>
             <div className="sidebar-logo-sub">CTE · UFSM</div>

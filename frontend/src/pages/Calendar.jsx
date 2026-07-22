@@ -43,11 +43,17 @@ const Calendar = () => {
     e.preventDefault();
     setSaving(true);
     try {
+      const payload = {
+        ...formData,
+        start_at: new Date(formData.start_at).toISOString(),
+        end_at: new Date(formData.end_at).toISOString(),
+      };
+      
       if (editing) {
-        await api.put(`/calendar/${editing.id}`, formData);
+        await api.put(`/calendar/${editing.id}`, payload);
         toast.success('Evento atualizado');
       } else {
-        await api.post('/calendar', formData);
+        await api.post('/calendar', payload);
         toast.success('Evento criado');
       }
       setShowModal(false);

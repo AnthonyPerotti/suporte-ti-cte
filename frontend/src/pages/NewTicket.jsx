@@ -4,17 +4,10 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 
-const PRIORITY_OPTIONS = [
-  { value: 'low',    label: 'Baixa'   },
-  { value: 'normal', label: 'Normal'  },
-  { value: 'high',   label: 'Alta'    },
-  { value: 'urgent', label: 'Urgente' },
-];
-
 const NewTicket = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState('normal');
+
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
   const [files, setFiles] = useState([]);
@@ -68,7 +61,7 @@ const NewTicket = () => {
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
-      formData.append('priority', priority);
+
       if (subcategoryId) formData.append('category_id', subcategoryId);
       else if (categoryId) formData.append('category_id', categoryId);
       files.forEach(f => formData.append('attachments', f));
@@ -200,17 +193,7 @@ const NewTicket = () => {
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Classificação</div>
 
-              <div className="form-group">
-                <label className="form-label">Prioridade</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {PRIORITY_OPTIONS.map(opt => (
-                    <label key={opt.value} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: `1px solid ${priority === opt.value ? 'var(--color-primary)' : 'var(--color-border)'}`, background: priority === opt.value ? 'var(--color-primary-light)' : 'transparent', transition: 'all var(--transition)' }}>
-                      <input type="radio" name="priority" value={opt.value} checked={priority === opt.value} onChange={() => setPriority(opt.value)} style={{ display: 'none' }} />
-                      <span className={`badge badge-${opt.value}`}>{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
+
 
               <div className="form-group">
                 <label className="form-label" htmlFor="cat">Categoria</label>

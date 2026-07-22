@@ -99,7 +99,7 @@ const AdminTickets = () => {
                     <th>Solicitante</th>
                     <th>Técnico</th>
                     <th>Status</th>
-                    <th>SLA</th>
+                    <th>Prazo</th>
                     <th>Aberto em</th>
                   </tr>
                 </thead>

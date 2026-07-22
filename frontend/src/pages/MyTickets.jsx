@@ -15,13 +15,7 @@ const STATUS_OPTIONS = [
   { value: 'closed', label: 'Encerrado' },
 ];
 
-const PRIORITY_OPTIONS = [
-  { value: '', label: 'Todas as prioridades' },
-  { value: 'urgent', label: 'Urgente' },
-  { value: 'high', label: 'Alta' },
-  { value: 'normal', label: 'Normal' },
-  { value: 'low', label: 'Baixa' },
-];
+
 
 const formatDate = (d) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 
@@ -31,7 +25,7 @@ const MyTickets = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
-  const [priority, setPriority] = useState('');
+
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const toast = useToast();
@@ -41,7 +35,7 @@ const MyTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, ...(status && { status }), ...(priority && { priority }), ...(search && { search }) };
+      const params = { page, limit, ...(status && { status }), ...(search && { search }) };
       const { data } = await api.get('/tickets', { params });
       setTickets(data.tickets);
       setTotal(data.total);
@@ -52,7 +46,7 @@ const MyTickets = () => {
     }
   };
 
-  useEffect(() => { fetchTickets(); }, [page, status, priority, search]);
+  useEffect(() => { fetchTickets(); }, [page, status, search]);
 
   const pages = Math.ceil(total / limit);
 
@@ -87,9 +81,7 @@ const MyTickets = () => {
           <select className="form-select" style={{ width: 'auto' }} value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <select className="form-select" style={{ width: 'auto' }} value={priority} onChange={e => { setPriority(e.target.value); setPage(1); }}>
-            {PRIORITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
+
         </div>
 
         {/* Table */}
@@ -103,7 +95,7 @@ const MyTickets = () => {
               <div className="empty-state-icon">📭</div>
               <div className="empty-state-title">Nenhum chamado encontrado</div>
               <div className="empty-state-subtitle">
-                {search || status || priority ? 'Tente ajustar os filtros.' : 'Você ainda não abriu nenhum chamado.'}
+                {search || status ? 'Tente ajustar os filtros.' : 'Você ainda não abriu nenhum chamado.'}
               </div>
               <button className="btn btn-primary" onClick={() => navigate('/new-ticket')}>
                 Abrir primeiro chamado
@@ -119,8 +111,8 @@ const MyTickets = () => {
                     <th>ID</th>
                     <th>Título</th>
                     <th>Status</th>
-                    <th>Prioridade</th>
-                    <th>SLA</th>
+
+                    <th>Prazo</th>
                     <th>Aberto em</th>
                     <th>Atualizado</th>
                   </tr>
@@ -136,7 +128,7 @@ const MyTickets = () => {
                         {t.category && <div className="text-xs text-muted">{t.category.name}</div>}
                       </td>
                       <td><StatusBadge status={t.status} /></td>
-                      <td><PriorityBadge priority={t.priority} /></td>
+
                       <td><SlaBadge sla_status={t.sla_status} /></td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(t.created_at)}</td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(t.updated_at)}</td>

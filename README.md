@@ -2,6 +2,13 @@
 
 Sistema completo de suporte técnico interno e base de conhecimento.
 
+## Recursos Principais
+- **Abertura e Gestao de Chamados:** Fluxo completo para usuarios abrirem tickets, com atribuicao a tecnicos, prazos estipulados e avaliacao de atendimento. (Prioridades de chamados restritas a equipe tecnica).
+- **Base de Conhecimento:** Sistema de artigos com suporte a pesquisa, categorias, tags e controle de acesso hierarquico (rascunhos e arquivamento via soft delete disponiveis para gestao).
+- **Agenda Google:** Integracao com gerador de links para criacao rapida de eventos no Google Agenda com fusos horarios ajustados automaticamente.
+- **Identidade Visual Customizada:** Interface limpa, responsiva, com a identidade do CTE (Coordenadoria de Tecnologia Educacional) e indicadores amigaveis de prazos.
+- **Controle de Permissoes:** Tres niveis de acesso (Admin, Tecnico e Usuario) para separacao adequada de responsabilidades e visoes do sistema.
+
 ## Arquitetura
 - **Backend:** Node.js, Express, Prisma, PostgreSQL
 - **Frontend:** React, Vite

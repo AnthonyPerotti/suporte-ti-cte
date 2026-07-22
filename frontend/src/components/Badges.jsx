@@ -14,9 +14,9 @@ const PRIORITY_LABELS = {
 };
 
 const SLA_LABELS = {
-  ok:       'OK',
-  warning:  '24h+',
-  critical: '48h+',
+  ok: 'No Prazo',
+  warning: 'Atenção (24h+)',
+  critical: 'Crítico (48h+)',
 };
 
 export const StatusBadge = ({ status }) => (
