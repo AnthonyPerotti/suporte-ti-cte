@@ -308,7 +308,8 @@ const TicketDetail = () => {
                             {c.attachments?.length > 0 && (
                               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {c.attachments.map(a => {
-                                  const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`;
+                                  const cleanPath = a.path.replace(/^\/?uploads\//, '');
+                                  const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${cleanPath}`;
                                   const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
                                   return (
                                     <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>

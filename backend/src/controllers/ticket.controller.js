@@ -166,6 +166,38 @@ const createTicket = async (req, res) => {
   emailService.sendTicketCreatedToUser({ ticket, user }).catch(console.error);
   emailService.sendTicketCreatedToTeam({ ticket, user, teamEmails }).catch(console.error);
 
+  // Automated first reply
+  const systemAdmin = await prisma.user.findFirst({
+    where: { role: 'admin', is_active: true },
+    orderBy: { created_at: 'asc' }
+  });
+
+  if (systemAdmin) {
+    const template = await prisma.template.findFirst({
+      where: { title: 'Chamado Recebido' }
+    });
+    
+    const autoReplyContent = template?.content || 'Olá! Recebemos seu chamado e ele já está em nossa fila de atendimento. Em breve um técnico da equipe de TI entrará em contato. Agradecemos a compreensão.';
+    
+    await prisma.ticketComment.create({
+      data: {
+        ticket_id: ticket.id,
+        author_id: systemAdmin.id,
+        content: autoReplyContent,
+        is_internal: false,
+      }
+    });
+
+    await prisma.ticketEvent.create({
+      data: {
+        ticket_id: ticket.id,
+        actor_id: systemAdmin.id,
+        type: 'comment_added',
+        metadata: { is_internal: false, auto_reply: true },
+      },
+    });
+  }
+
   return res.status(201).json(ticket);
 };
 
@@ -281,7 +313,7 @@ const addComment = async (req, res) => {
           ticket_id: ticket.id,
           comment_id: comment.id,
           filename: file.originalname,
-          path: `/uploads/${file.filename}`,
+          path: file.filename,
           mimetype: file.mimetype,
           size: file.size,
         },
