@@ -116,7 +116,12 @@ const TicketDetail = () => {
 
   const assignTech = async (assigneeId) => {
     try {
-      await api.put(`/tickets/${id}`, { assignee_id: assigneeId });
+      const payload = { assignee_id: assigneeId };
+      // Se não havia técnico e agora tem, e o status é 'open', passa para 'in_progress' automaticamente
+      if (!ticket.assignee_id && assigneeId && ticket.status === 'open') {
+        payload.status = 'in_progress';
+      }
+      await api.put(`/tickets/${id}`, payload);
       await load();
       toast.success('Técnico atribuído');
     } catch {
@@ -206,6 +211,11 @@ const TicketDetail = () => {
                 <StatusBadge status={ticket.status} />
                 {isStaff && <PriorityBadge priority={ticket.priority} />}
                 <SlaBadge sla_status={ticket.sla_status} />
+                {ticket.due_date && (
+                  <span className="badge badge-normal" style={{ background: 'var(--color-surface-2)' }}>
+                    Prazo: {formatDate(ticket.due_date).substring(0, 10)}
+                  </span>
+                )}
               </div>
               <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 8 }}>{ticket.title}</h1>
               <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>

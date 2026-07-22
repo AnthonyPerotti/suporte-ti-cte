@@ -134,7 +134,10 @@ const MyTickets = () => {
                       </td>
                       <td><StatusBadge status={t.status} /></td>
 
-                      <td><SlaBadge sla_status={t.sla_status} /></td>
+                      <td>
+                        <SlaBadge sla_status={t.sla_status} />
+                        {t.due_date && <div className="text-xs text-muted mt-8">{new Date(t.due_date).toLocaleDateString('pt-BR')}</div>}
+                      </td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(t.created_at)}</td>
                       <td style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(t.updated_at)}</td>
                     </tr>

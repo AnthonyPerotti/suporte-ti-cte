@@ -2,11 +2,11 @@ const router = require('express').Router();
 const ctrl = require('../controllers/template.controller');
 const { authenticate, authorize } = require('../middlewares/auth.middleware');
 
-router.use(authenticate, authorize('admin', 'technician'));
-router.get('/', ctrl.listTemplates);
-router.post('/', ctrl.createTemplate);
-router.put('/:id', ctrl.updateTemplate);
-router.delete('/:id', ctrl.deleteTemplate);
+router.use(authenticate);
+router.get('/', authorize('admin', 'technician'), ctrl.listTemplates);
+router.post('/', authorize('admin'), ctrl.createTemplate);
+router.put('/:id', authorize('admin'), ctrl.updateTemplate);
+router.delete('/:id', authorize('admin'), ctrl.deleteTemplate);
 router.patch('/:id/restore', authorize('admin'), ctrl.restoreTemplate);
 
 module.exports = router;
