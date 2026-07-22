@@ -20,11 +20,9 @@ backend/node_modules/
 frontend/node_modules/
 
 # Pastas de build (O Docker fará o build lá no ZimaOS)
-dist/
 dist-ssr/
 build/
 backend/dist/
-frontend/dist/
 
 # Pastas de uploads locais
 backend/uploads/

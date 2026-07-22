@@ -1,18 +1,10 @@
-# Build stage
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY package*.json ./
-RUN rm -f package-lock.json && npm install --legacy-peer-deps
-COPY . .
-ARG VITE_API_URL
-ENV VITE_API_URL=$VITE_API_URL
-RUN npm run build
-
-# Serve stage
+# Imagem super leve só para servir os arquivos já compilados localmente
 FROM nginx:alpine
-COPY --from=build /app/dist /usr/share/nginx/html
 
-# Replace default nginx config to support React Router SPA (fallback to index.html)
+# Copia a pasta dist (que você vai enviar pro Github) para o Nginx
+COPY dist /usr/share/nginx/html
+
+# Configura o Nginx para suportar as rotas do React (SPA)
 RUN echo 'server { \
     listen 80; \
     location / { \
