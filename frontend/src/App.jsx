@@ -18,6 +18,7 @@ import Knowledge from './pages/Knowledge';
 import KnowledgeDetail from './pages/KnowledgeDetail';
 import Calendar from './pages/Calendar';
 import Reports from './pages/Reports';
+import Profile from './pages/Profile';
 import { useAuth } from './contexts/AuthContext';
 
 const HomeRoute = () => {
