@@ -49,13 +49,13 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link to={isStaff ? '/admin' : '/'} style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 10 }}>
           <img src={cteLogo} alt="CTE Logo" style={{ width: 40, height: 'auto', filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))' }} />
           <div>
             <div className="sidebar-logo-text">Suporte TI</div>
             <div className="sidebar-logo-sub">CTE · UFSM</div>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="sidebar-nav">

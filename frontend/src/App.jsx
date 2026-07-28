@@ -18,7 +18,15 @@ import Knowledge from './pages/Knowledge';
 import KnowledgeDetail from './pages/KnowledgeDetail';
 import Calendar from './pages/Calendar';
 import Reports from './pages/Reports';
-import Profile from './pages/Profile';
+import { useAuth } from './contexts/AuthContext';
+
+const HomeRoute = () => {
+  const { user } = useAuth();
+  if (['admin', 'technician'].includes(user?.role)) {
+    return <Navigate to="/admin" replace />;
+  }
+  return <MyTickets />;
+};
 
 const App = () => {
   return (
@@ -30,7 +38,7 @@ const App = () => {
             <Route path="/change-password" element={<ForcePasswordChange />} />
 
             {/* User Routes */}
-            <Route path="/" element={<PrivateRoute><MyTickets /></PrivateRoute>} />
+            <Route path="/" element={<PrivateRoute><HomeRoute /></PrivateRoute>} />
             <Route path="/new-ticket" element={<PrivateRoute><NewTicket /></PrivateRoute>} />
             <Route path="/tickets/:id" element={<PrivateRoute><TicketDetail /></PrivateRoute>} />
             <Route path="/knowledge" element={<PrivateRoute><Knowledge /></PrivateRoute>} />
