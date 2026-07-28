@@ -39,30 +39,22 @@ Sistema completo de suporte técnico interno e base de conhecimento.
    npm run dev
    ```
 
+- **Backend (API):** `3772`
+- **Frontend (SPA + Proxy Reverso Nginx):** `3773`
+
 ## Deploy via Portainer (Produção)
 
 1. No Portainer, vá em **Stacks > Add stack**.
 2. Escolha **Repository**.
 3. Insira a URL do repositório GitHub (`https://github.com/AnthonyPerotti/suporte-ti-cte`).
-4. Ative **GitOps updates** com Polling ou Webhook.
-5. Em **Environment variables**, configure pelo menos as seguintes variáveis para sobrescrever o `docker-compose.yml`:
+4. Em **Environment variables**, se desejar, configure as variáveis para produção:
    - `JWT_ACCESS_SECRET`
    - `JWT_REFRESH_SECRET`
    - `POSTGRES_PASSWORD`
    - Configurações SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`)
 
-> [!NOTE]
-> O frontend precisa saber a URL da API durante o build. O `docker-compose.yml` está configurado para passar `VITE_API_URL=http://suporteti.cte/api`. Se você for usar outro domínio, altere essa variável no compose.
-
-6. Configure o Nginx Proxy Manager (NPM):
-   - **Domain Name:** `suporteti.cte`
-   - **Forward Hostname/IP:** IP do host Docker
-   - **Forward Port:** `8080` (porta exposta do frontend no compose)
-   - Vá na aba **Custom locations**:
-     - `Location`: `/api`
-     - `Forward Hostname/IP`: IP do host Docker
-     - `Forward Port`: `3001` (porta do backend)
-     - `Scheme`: `http`
+5. **Acesso:**
+   Acesse a aplicação pela porta `3773` (`http://IP_DO_SERVIDOR:3773`). O container do frontend cuida automaticamente do roteamento para a API via proxy reverso interno.
 
 ## Credenciais Iniciais (Seed)
 Ao rodar a stack pela primeira vez, o banco será populado com:
