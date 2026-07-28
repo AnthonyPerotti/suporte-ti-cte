@@ -42,7 +42,8 @@ const Reports = () => {
 
   const handleExport = () => {
     const params = new URLSearchParams({ from, to });
-    const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/api/reports/export?${params.toString()}`;
+    const apiBase = import.meta.env.VITE_API_URL || '/api';
+    const url = `${apiBase}/reports/export?${params.toString()}`;
     const token = localStorage.getItem('access_token');
     
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })

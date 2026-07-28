@@ -29,8 +29,8 @@ services:
       - NODE_ENV=production
       - PORT=3001
       - DATABASE_URL=postgresql://postgres:postgres_password@db:5432/suporte_ti_cte
-      # URL do Frontend sem Nginx Proxy (Acesso direto pela porta 3773)
-      - FRONTEND_URL=http://192.168.16.200:3773
+      # FRONTEND_URL: '*' permite qualquer origem/IP (ou configure o dominio em prod)
+      - FRONTEND_URL=*
       # JWT Settings (Replace these in production Portainer Envs)
       - JWT_ACCESS_SECRET=super_secret_access_token_key_change_me
       - JWT_REFRESH_SECRET=super_secret_refresh_token_key_change_me
@@ -57,13 +57,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        # ATENÇÃO: Sem o Nginx Proxy, o frontend precisa falar direto com a porta 3001 do backend.
-        # Troque "SEU_IP_DO_ZIMAOS" pelo IP local do seu ZimaOS (ex: http://192.168.1.100:3001)
-        - VITE_API_URL=http://192.168.16.200:3001
+        # Proxy reverso ativo no container: /api redireciona para backend:3001
+        - VITE_API_URL=/api
     container_name: suporte-ti-cte-frontend
     restart: unless-stopped
     ports:
-      - "3773:80" # Exposed to host (ZimaOS), NPM will proxy to this port
+      - "3773:80" # Porta exposta do Frontend/Proxy Nginx
     depends_on:
       - backend
 

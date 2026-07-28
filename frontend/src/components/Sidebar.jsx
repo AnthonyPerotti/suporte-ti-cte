@@ -1,5 +1,6 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { getUploadUrl } from '../utils/url';
 import cteLogo from '../assets/cte-logo.png';
 
 const roleLabels = { admin: 'Administrador', technician: 'Técnico', user: 'Usuário' };
@@ -83,7 +84,7 @@ const Sidebar = () => {
         <div className="sidebar-user">
           <div className="sidebar-avatar">
             {user?.avatar_url ? (
-              <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${user.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              <img src={getUploadUrl(user.avatar_url)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
             ) : (
               getInitials(user?.name)
             )}

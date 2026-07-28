@@ -24,7 +24,11 @@ const LoginPage = () => {
         navigate(isStaff ? '/admin' : '/');
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Credenciais inválidas');
+      if (!err.response) {
+        toast.error('Erro de conexão com o servidor backend.');
+      } else {
+        toast.error(err.response?.data?.error || 'Credenciais inválidas');
+      }
     } finally {
       setLoading(false);
     }

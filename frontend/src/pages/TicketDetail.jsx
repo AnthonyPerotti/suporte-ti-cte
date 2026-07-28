@@ -5,6 +5,7 @@ import { StatusBadge, PriorityBadge, SlaBadge } from '../components/Badges';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getUploadUrl } from '../utils/url';
 
 const EVENT_LABELS = {
   created:         'Chamado aberto',
@@ -252,7 +253,7 @@ const TicketDetail = () => {
                   <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Anexos</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {ticket.attachments.map(a => {
-                      const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${a.path}`;
+                      const url = getUploadUrl(a.path);
                       const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
                       return (
                         <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
@@ -310,7 +311,7 @@ const TicketDetail = () => {
                         <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined, padding: 0, overflow: 'hidden' }}>
                           <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)', width: '100%', height: '100%' }}>
                             {c.author.avatar_url ? (
-                              <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${c.author.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <img src={getUploadUrl(c.author.avatar_url)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
                               getInitials(c.author.name)
                             )}
@@ -326,8 +327,7 @@ const TicketDetail = () => {
                             {c.attachments?.length > 0 && (
                               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {c.attachments.map(a => {
-                                  const cleanPath = a.path.replace(/^\/?uploads\//, '');
-                                  const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${cleanPath}`;
+                                  const url = getUploadUrl(a.path);
                                   const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
                                   return (
                                     <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
@@ -454,7 +454,7 @@ const TicketDetail = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div className="avatar avatar-md" style={{ overflow: 'hidden' }}>
                   {ticket.user?.avatar_url ? (
-                    <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${ticket.user.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={getUploadUrl(ticket.user.avatar_url)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     getInitials(ticket.user?.name)
                   )}
@@ -474,7 +474,7 @@ const TicketDetail = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                     <div className="avatar avatar-md" style={{ background: 'var(--color-primary)', overflow: 'hidden' }}>
                       {ticket.assignee.avatar_url ? (
-                        <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${ticket.assignee.avatar_url}`} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={getUploadUrl(ticket.assignee.avatar_url)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         getInitials(ticket.assignee.name)
                       )}

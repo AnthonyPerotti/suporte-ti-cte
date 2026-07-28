@@ -20,9 +20,14 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// CORS
+// CORS setup: allow dynamic origins when FRONTEND_URL is '*' or omitted
+const frontendUrl = process.env.FRONTEND_URL;
+const corsOrigin = (!frontendUrl || frontendUrl === '*')
+  ? true
+  : (frontendUrl.includes(',') ? frontendUrl.split(',').map(u => u.trim()) : frontendUrl);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: corsOrigin,
   credentials: true,
 }));
 

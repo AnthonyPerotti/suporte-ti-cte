@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getUploadUrl } from '../utils/url';
 import ReactMarkdown from 'react-markdown';
 
 const KnowledgeDetail = () => {
@@ -104,7 +105,7 @@ const KnowledgeDetail = () => {
       const { data } = await api.post('/knowledge/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const url = `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}${data.url}`;
+      const url = getUploadUrl(data.url);
       
       const isImage = file.type.startsWith('image/');
       const markdown = isImage ? `\n![${file.name}](${url})\n` : `\n[${file.name}](${url})\n`;

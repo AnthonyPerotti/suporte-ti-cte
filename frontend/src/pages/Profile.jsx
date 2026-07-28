@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
+import { getUploadUrl } from '../utils/url';
 
 const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
 
@@ -25,7 +26,7 @@ const Profile = () => {
       setName(user.name || '');
       setEmail(user.email || '');
       if (user.avatar_url) {
-        setAvatarPreview(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001'}/uploads/${user.avatar_url}`);
+        setAvatarPreview(getUploadUrl(user.avatar_url));
       }
     }
   }, [user]);
