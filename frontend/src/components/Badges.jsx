@@ -37,6 +37,6 @@ export const SlaBadge = ({ sla_status }) => {
 };
 
 export const RoleBadge = ({ role }) => {
-  const labels = { admin: 'Admin', technician: 'Técnico', user: 'Usuário' };
+  const labels = { root: 'Super Root', admin: 'Admin', technician: 'Técnico', user: 'Usuário' };
   return <span className={`badge badge-${role}`}>{labels[role] || role}</span>;
 };

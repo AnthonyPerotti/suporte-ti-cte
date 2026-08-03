@@ -3,10 +3,12 @@ import Sidebar from '../components/Sidebar';
 import { RoleBadge } from '../components/Badges';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
 
 const AdminUsers = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -60,11 +62,16 @@ const AdminUsers = () => {
     }
   };
 
-  const resetPassword = async (id) => {
+  const resetPassword = async (userToReset) => {
+    if (userToReset.role === 'root' && currentUser?.role !== 'root') {
+      toast.error('Apenas o usuário Root pode resetar a própria senha.');
+      return;
+    }
+
     const temp = prompt('Digite a nova senha temporária (mínimo 4 caracteres):');
     if (!temp) return;
     try {
-      await api.post(`/users/${id}/reset-password`, { temp_password: temp });
+      await api.post(`/users/${userToReset.id}/reset-password`, { temp_password: temp });
       toast.success('Senha resetada com sucesso');
       fetchUsers();
     } catch (err) {
@@ -72,16 +79,29 @@ const AdminUsers = () => {
     }
   };
 
-  const toggleStatus = async (user) => {
-    if (!confirm(`Deseja ${user.is_active ? 'desativar' : 'ativar'} o usuário ${user.name}?`)) return;
+  const toggleStatus = async (userToToggle) => {
+    if (userToToggle.role === 'root') {
+      toast.error('A conta Root não pode ser desativada.');
+      return;
+    }
+
+    if (userToToggle.id === currentUser?.id) {
+      toast.error('Você não pode desativar a sua própria conta.');
+      return;
+    }
+
+    if (!confirm(`Deseja ${userToToggle.is_active ? 'desativar' : 'ativar'} o usuário ${userToToggle.name}?`)) return;
     try {
-      await api.put(`/users/${user.id}`, { is_active: !user.is_active });
+      await api.put(`/users/${userToToggle.id}`, { is_active: !userToToggle.is_active });
       toast.success('Status alterado');
       fetchUsers();
     } catch {
       toast.error('Erro ao alterar status');
     }
   };
+
+  const isSelf = editingUser && editingUser.id === currentUser?.id;
+  const isEditingRoot = editingUser && (editingUser.role === 'root' || editingUser.email === 'root@ufsm.br');
 
   return (
     <div className="app-layout">
@@ -133,7 +153,10 @@ const AdminUsers = () => {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div className="avatar avatar-sm">{getInitials(u.name)}</div>
-                        <div style={{ fontWeight: 500 }}>{u.name}</div>
+                        <div style={{ fontWeight: 500 }}>
+                          {u.name}
+                          {u.id === currentUser?.id && <span style={{ marginLeft: 6, fontSize: '0.72rem', color: 'var(--color-primary)' }}>(Você)</span>}
+                        </div>
                       </div>
                     </td>
                     <td>{u.email}</td>
@@ -145,8 +168,8 @@ const AdminUsers = () => {
                     </td>
                     <td style={{ textAlign: 'right' }}>
                       <button className="btn btn-ghost btn-icon" onClick={() => { setEditingUser(u); setFormData({ ...u }); setShowModal(true); }} title="Editar">✏️</button>
-                      <button className="btn btn-ghost btn-icon" onClick={() => resetPassword(u.id)} title="Resetar Senha">🔑</button>
-                      <button className="btn btn-ghost btn-icon" onClick={() => toggleStatus(u)} title={u.is_active ? 'Desativar' : 'Ativar'}>
+                      <button className="btn btn-ghost btn-icon" onClick={() => resetPassword(u)} title="Resetar Senha" disabled={u.role === 'root' && currentUser?.role !== 'root'}>🔑</button>
+                      <button className="btn btn-ghost btn-icon" onClick={() => toggleStatus(u)} title={u.is_active ? 'Desativar' : 'Ativar'} disabled={u.role === 'root' || u.id === currentUser?.id}>
                         {u.is_active ? '🚫' : '✅'}
                       </button>
                     </td>
@@ -187,11 +210,29 @@ const AdminUsers = () => {
                 <div className="grid-2">
                   <div className="form-group">
                     <label className="form-label">Nível de Acesso</label>
-                    <select className="form-select" value={formData.role} onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}>
+                    <select
+                      className="form-select"
+                      value={formData.role}
+                      disabled={isSelf || (isEditingRoot && currentUser?.role !== 'root')}
+                      onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
+                    >
                       <option value="user">Usuário Comum</option>
                       <option value="technician">Técnico TI</option>
                       <option value="admin">Administrador</option>
+                      {(currentUser?.role === 'root' || formData.role === 'root') && (
+                        <option value="root">Super Root</option>
+                      )}
                     </select>
+                    {isSelf && (
+                      <div className="form-hint" style={{ color: 'var(--color-warning)' }}>
+                        Você não pode alterar seu próprio nível de acesso.
+                      </div>
+                    )}
+                    {isEditingRoot && !isSelf && (
+                      <div className="form-hint" style={{ color: 'var(--color-warning)' }}>
+                        O nível de acesso da conta Root não pode ser modificado.
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label className="form-label">Departamento</label>

@@ -29,6 +29,7 @@ const navItems = {
     { to: '/admin/categories',     label: 'Categorias',             icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z' },
     { to: '/admin/templates',      label: 'Respostas Rápidas',      icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z' },
     { to: '/admin/email-settings', label: 'Configuração de E-mail', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+    { to: '/admin/logs',           label: 'Logs de Auditoria',     icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
   ],
 };
 
@@ -37,7 +38,7 @@ const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const isStaff = user?.role === 'admin' || user?.role === 'technician';
+  const isStaff = user?.role === 'admin' || user?.role === 'technician' || user?.role === 'root';
 
   const handleLogout = async () => {
     await logout();
@@ -45,7 +46,7 @@ const Sidebar = () => {
   };
 
   const items = isStaff ? navItems.staff : navItems.user;
-  const adminItems = user?.role === 'admin' ? navItems.adminOnly : [];
+  const adminItems = ['admin', 'root'].includes(user?.role) ? navItems.adminOnly : [];
 
   return (
     <aside className="sidebar">

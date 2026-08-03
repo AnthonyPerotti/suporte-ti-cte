@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const path = require('path');
 const fs = require('fs');
 const emailService = require('../services/email.service');
+const { logAudit } = require('../services/audit.service');
 
 const prisma = new PrismaClient();
 
@@ -41,7 +42,7 @@ const ticketSelect = {
 const listTickets = async (req, res) => {
   const { status, priority, category_id, assignee_id, search, archived, page = 1, limit = 20 } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
 
   const where = {
     is_archived: archived === 'true',
@@ -80,7 +81,7 @@ const listTickets = async (req, res) => {
 };
 
 const getTicket = async (req, res) => {
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
 
   const ticket = await prisma.ticket.findUnique({
     where: { id: req.params.id },
@@ -201,14 +202,18 @@ const createTicket = async (req, res) => {
         type: 'comment_added',
         metadata: { is_internal: false, auto_reply: true },
       },
-    });
-  }
+  logAudit({
+    req,
+    action: 'TICKET_CREATE',
+    resource: 'tickets',
+    details: { ticket_id: ticket.id, title: ticket.title, priority: ticket.priority },
+  });
 
   return res.status(201).json(ticket);
 };
 
 const updateTicket = async (req, res) => {
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
 
   if (!isStaff) return res.status(403).json({ error: 'Forbidden' });
 
@@ -225,8 +230,8 @@ const updateTicket = async (req, res) => {
   }
 
   if (status && status !== current.status) {
-    // Only admin can reopen a closed ticket
-    if (current.status === 'closed' && req.user.role !== 'admin') {
+    // Only admin or root can reopen a closed ticket
+    if (current.status === 'closed' && !['admin', 'root'].includes(req.user.role)) {
       return res.status(403).json({ error: 'Apenas administradores podem reabrir um chamado encerrado.' });
     }
 
@@ -403,6 +408,14 @@ const archiveTicket = async (req, res) => {
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
   
   await prisma.ticket.update({ where: { id: req.params.id }, data: { is_archived: true } });
+
+  logAudit({
+    req,
+    action: 'TICKET_ARCHIVE',
+    resource: 'tickets',
+    details: { ticket_id: ticket.id, title: ticket.title },
+  });
+
   return res.json({ message: 'Ticket archived' });
 };
 
@@ -411,14 +424,35 @@ const unarchiveTicket = async (req, res) => {
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
   
   await prisma.ticket.update({ where: { id: req.params.id }, data: { is_archived: false } });
+
+  logAudit({
+    req,
+    action: 'TICKET_UNARCHIVE',
+    resource: 'tickets',
+    details: { ticket_id: ticket.id, title: ticket.title },
+  });
+
   return res.json({ message: 'Ticket unarchived' });
 };
 
 const deleteTicket = async (req, res) => {
+  // STRICT PERMISSION: ONLY ROOT ROLE CAN PERMANENTLY DELETE TICKETS
+  if (req.user.role !== 'root') {
+    return res.status(403).json({ error: 'Apenas a conta Root tem permissão para excluir chamados permanentemente.' });
+  }
+
   const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
   
   await prisma.ticket.delete({ where: { id: req.params.id } });
+
+  logAudit({
+    req,
+    action: 'TICKET_DELETE',
+    resource: 'tickets',
+    details: { ticket_id: ticket.id, title: ticket.title },
+  });
+
   return res.json({ message: 'Ticket deleted' });
 };
 

@@ -385,11 +385,44 @@ const sendNewComment = async ({ ticket, user, technician, commentAuthor, comment
   }
 };
 
+const sendSampleTemplateEmail = async ({ targetEmail, rawSubject, rawBody }) => {
+  const transportObj = await getTransporter();
+  if (!transportObj) {
+    throw new Error('Servidor de e-mail não configurado ou inativo');
+  }
+  const { transporter, config } = transportObj;
+
+  const sampleData = {
+    user_name: 'Usuário de Teste',
+    user_email: targetEmail,
+    ticket_id: 'TST12345',
+    ticket_title: 'Chamado de Teste do Sistema',
+    ticket_description: 'Esta é uma mensagem de teste enviada pelo painel administrativo para validar o modelo de e-mail.',
+    ticket_priority: 'Alta',
+    status: 'Em Atendimento',
+    tech_name: 'Técnico de Suporte',
+    author_name: 'Administrador do Sistema',
+    comment_content: 'Este é um comentário de exemplo utilizado no teste de envio do modelo de e-mail.',
+  };
+
+  const subject = renderTemplate(rawSubject || '[Teste] Modelo de E-mail', sampleData);
+  const html = buildEmailWrapper(renderTemplate(rawBody || '<p>Teste de envio de e-mail</p>', sampleData));
+  const fromAddress = `"${config.fromName}" <${config.fromEmail}>`;
+
+  await transporter.sendMail({
+    from: fromAddress,
+    to: targetEmail,
+    subject: `[TESTE] ${subject}`,
+    html,
+  });
+};
+
 module.exports = {
   sendTicketCreatedToUser,
   sendTicketCreatedToTeam,
   sendStatusUpdate,
   sendNewComment,
   testSmtpConnection,
+  sendSampleTemplateEmail,
   clearTransporterCache,
 };

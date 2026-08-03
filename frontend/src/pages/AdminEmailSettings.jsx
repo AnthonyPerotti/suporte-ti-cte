@@ -368,7 +368,28 @@ const AdminEmailSettings = () => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={async () => {
+                        const targetEmail = prompt('Digite o e-mail de destino para receber a mensagem de teste:', config.smtp_user || '');
+                        if (!targetEmail) return;
+                        try {
+                          toast.info('Enviando e-mail de teste...');
+                          const { data } = await api.post('/email-config/templates/test-send', {
+                            target_email: targetEmail,
+                            subject: currentSubject,
+                            body: currentBody,
+                          });
+                          toast.success(data.message || 'E-mail de teste enviado!');
+                        } catch (err) {
+                          toast.error(err.response?.data?.error || 'Erro ao enviar e-mail de teste');
+                        }
+                      }}
+                    >
+                      ✉️ Testar Envio deste Modelo
+                    </button>
                     <button type="submit" className="btn btn-primary" disabled={savingTemplate}>
                       {savingTemplate ? <span className="spinner" /> : '💾'} Salvar Modelo
                     </button>

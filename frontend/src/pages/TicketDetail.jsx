@@ -47,7 +47,7 @@ const TicketDetail = () => {
   const [templates, setTemplates] = useState([]);
   const [technicians, setTechnicians] = useState([]);
 
-  const isStaff = ['admin', 'technician'].includes(user?.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(user?.role);
 
   const load = async () => {
     try {
@@ -200,12 +200,12 @@ const TicketDetail = () => {
 
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
   
-  const canEdit = !isStaff || user.role === 'admin' || ticket.assignee_id === user.id;
+  const canEdit = !isStaff || ['admin', 'root'].includes(user?.role) || ticket.assignee_id === user.id;
   const isUnassignedTech = isStaff && user.role === 'technician' && !ticket.assignee_id;
   const isAssignedToOther = isStaff && user.role === 'technician' && ticket.assignee_id && ticket.assignee_id !== user.id;
 
   let nextStatuses = (isStaff && canEdit) ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
-  if (ticket.status === 'closed' && user.role !== 'admin') {
+  if (ticket.status === 'closed' && !['admin', 'root'].includes(user?.role)) {
     nextStatuses = [];
   }
 
@@ -557,26 +557,26 @@ const TicketDetail = () => {
               </div>
             )}
 
-            {/* Admin Actions */}
-            {user?.role === 'admin' && (
+            {/* Admin / Root Actions */}
+            {['admin', 'root'].includes(user?.role) && (
               <div className="card" style={{ marginBottom: 16, borderColor: 'var(--color-danger)', background: 'rgba(239,68,68,0.02)' }}>
-                <div className="card-title" style={{ color: 'var(--color-danger)' }}>Admin</div>
-                {user.role === 'admin' ? (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {ticket.is_archived ? (
-                      <button className="btn btn-secondary btn-sm btn-full" onClick={unarchiveTicket} style={{ background: 'var(--color-bg)' }}>
-                        Desarquivar Chamado
-                      </button>
-                    ) : (
-                      <button className="btn btn-secondary btn-sm btn-full" onClick={archiveTicket} style={{ background: 'var(--color-bg)' }}>
-                        Arquivar Chamado
-                      </button>
-                    )}
-                    <button className="btn btn-secondary btn-sm btn-full" onClick={deleteTicket} style={{ background: 'var(--color-danger)', color: 'white', border: 'none' }}>
-                      🗑️ Excluir
+                <div className="card-title" style={{ color: 'var(--color-danger)' }}>Ações Avançadas</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {ticket.is_archived ? (
+                    <button className="btn btn-secondary btn-sm btn-full" onClick={unarchiveTicket} style={{ background: 'var(--color-bg)' }}>
+                      Desarquivar Chamado
                     </button>
-                  </div>
-                ) : null}
+                  ) : (
+                    <button className="btn btn-secondary btn-sm btn-full" onClick={archiveTicket} style={{ background: 'var(--color-bg)' }}>
+                      Arquivar Chamado
+                    </button>
+                  )}
+                  {user?.role === 'root' && (
+                    <button className="btn btn-secondary btn-sm btn-full" onClick={deleteTicket} style={{ background: 'var(--color-danger)', color: 'white', border: 'none' }}>
+                      🗑️ Excluir Permanentemente (Root)
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 

@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { PrismaClient } = require('@prisma/client');
 const { v4: uuidv4 } = require('uuid');
+const { logAudit } = require('../services/audit.service');
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,14 @@ const login = async (req, res) => {
   expiresAt.setDate(expiresAt.getDate() + 7);
   await prisma.refreshToken.create({
     data: { token: refreshToken, user_id: user.id, expires_at: expiresAt },
+  });
+
+  logAudit({
+    req,
+    user: { id: user.id, name: user.name, email: user.email, role: user.role },
+    action: 'LOGIN',
+    resource: 'auth',
+    details: 'Login efetuado com sucesso',
   });
 
   return res.json({

@@ -1,14 +1,18 @@
 # Suporte TI CTE
 
-Sistema completo de suporte técnico interno e base de conhecimento.
+Sistema completo de suporte técnico interno, gestão de chamados, auditoria de logs e base de conhecimento.
 
 ## Recursos Principais
-- **Abertura e Gestão de Chamados:** Fluxo completo para usuários abrirem tickets, com atribuição a técnicos, prazos estipulados (due date), avaliação de atendimento com comentários e um histórico unificado (timeline) ordenado. Prioridades e prazos são definidos exclusivamente pela equipe técnica.
-- **Base de Conhecimento e Respostas Rápidas:** Sistema de artigos com suporte a pesquisa, anexos de mídia (imagens e arquivos), formatação markdown e controle de acesso hierárquico. Categorias, templates e artigos possuem exclusão lógica (soft delete / arquivamento).
-- **Anexos e Comunicação:** Envio de imagens e documentos via chamados e respostas (integração Multer/upload local). Possui geração rápida de salas de conferência (Jitsi Meet) integradas na timeline para suporte remoto imediato.
-- **Agenda Google:** Integração com gerador de links para criação rápida de eventos no Google Agenda com fusos horários ajustados automaticamente.
-- **Perfil de Usuário:** Gestão autônoma de perfil, onde o usuário pode alterar sua foto (avatar), nome, e-mail e senha de forma simplificada e independente, com limpeza automática da foto de perfil antiga do servidor ao atualizar.
-- **Controle de Permissões Rigoroso:** Três níveis de acesso (Admin, Técnico e Usuário). O Técnico pode criar apenas Usuários (não técnicos) e redefinir suas senhas. Ações irreversíveis (exclusão permanente de tickets, expurgo em massa "Purga") exigem autenticação dupla e estão restritas ao nível Administrador.
+- **Abertura e Gestão de Chamados:** Fluxo completo para usuários abrirem tickets, com atribuição a técnicos, prazos estipulados (due date), avaliação de atendimento com comentários e histórico unificado (timeline). Prioridades e prazos são definidos exclusivamente pela equipe técnica.
+- **Regras de Encerramento e Reabertura:** Técnicos podem encerrar chamados. Uma vez encerrado, o chamado só pode ser reaberto por Administradores ou Root.
+- **Notificações por E-mail e Threading:** E-mail de backup enviado ao solicitante na criação do chamado. Threading automático (mesmo assunto e cabeçalhos de referência) para agrupar todas as mensagens do chamado em uma única conversa no Gmail/Outlook.
+- **Painel de Configuração de E-mail:** Interface administrativa para definir credenciais SMTP, testar conexão do servidor e testar o envio real de modelos de e-mail renderizados com dados fictícios.
+- **Logs do Sistema e Auditoria:** Registro detalhado de todas as ações executadas no sistema (logins, alterações de status, criação de usuários, alterações de papel, exclusões, etc.) com IP, data/hora e detalhes em JSON. Suporte a busca por texto, filtros por recurso/ação/período e **exportação em CSV**.
+- **Segurança e Níveis de Acesso (Root, Admin, Técnico e Usuário):**
+  - **Root (`root@ufsm.br`):** Nível máximo do sistema. **Apenas a conta Root pode excluir chamados permanentemente**. O papel Root é protegido e não pode ser rebaixado nem alterado.
+  - **Admin:** Pode gerenciar usuários, categorias, templates de e-mail, respostas rápidas, visualizar logs e arquivar/desarquivar chamados.
+  - **Técnico:** Pode atender chamados, adicionar notas internas, atualizar status e criar usuários comuns.
+  - **Proteção de Auto-Alteração:** Nenhum usuário pode alterar o seu próprio nível de acesso/cargo para evitar perda acidental de privilégios.
 
 ## Arquitetura
 - **Backend:** Node.js, Express, Prisma, PostgreSQL
@@ -17,7 +21,7 @@ Sistema completo de suporte técnico interno e base de conhecimento.
 
 ## Pré-requisitos
 - Docker e Docker Compose instalados.
-- Gerenciador de Proxy Reverso (Nginx Proxy Manager recomendado).
+- Gerenciador de Proxy Reverso ou redirecionamento direto de portas.
 
 ## Como rodar localmente (Desenvolvimento)
 
@@ -27,7 +31,7 @@ Sistema completo de suporte técnico interno e base de conhecimento.
    npm install
    cp .env.example .env
    # Suba um banco Postgres localmente na porta 5432
-   npx prisma migrate dev
+   npx prisma db push
    node prisma/seed.js
    npm run dev
    ```
@@ -36,28 +40,23 @@ Sistema completo de suporte técnico interno e base de conhecimento.
    ```bash
    cd frontend
    npm install
+   npm run build
    npm run dev
    ```
 
 - **Backend (API):** `3772`
-- **Frontend (SPA + Proxy Reverso Nginx):** `3773`
+- **Frontend (SPA + Proxy Nginx):** `80` (e porta alternativa `3773`)
 
 ## Deploy via Portainer (Produção)
 
 1. No Portainer, vá em **Stacks > Add stack**.
 2. Escolha **Repository**.
 3. Insira a URL do repositório GitHub (`https://github.com/AnthonyPerotti/suporte-ti-cte`).
-4. Em **Environment variables**, se desejar, configure as variáveis para produção:
-   - `JWT_ACCESS_SECRET`
-   - `JWT_REFRESH_SECRET`
-   - `POSTGRES_PASSWORD`
-   - Configurações SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`)
-
-5. **Acesso:**
-   Acesse a aplicação pela porta `3773` (`http://IP_DO_SERVIDOR:3773`). O container do frontend cuida automaticamente do roteamento para a API via proxy reverso interno.
+4. Em **Actions**, clique em **Pull and redeploy**.
 
 ## Credenciais Iniciais (Seed)
-Ao rodar a stack pela primeira vez, o banco será populado com:
+Ao rodar a stack pela primeira vez, o banco é populado com as seguintes contas padrão:
+- **Super Root:** `root@ufsm.br` / `Root@123`
 - **Admin:** `admin@cead.ufsm.br` / `Admin@123`
 - **Técnico:** `tecnico@cead.ufsm.br` / `Temp@123` (exige troca no 1º login)
 - **Usuário:** `usuario@cead.ufsm.br` / `Temp@123` (exige troca no 1º login)

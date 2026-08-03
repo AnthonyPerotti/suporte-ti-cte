@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const emailService = require('../services/email.service');
+const { logAudit } = require('../services/audit.service');
 
 const DEFAULT_TEMPLATES = [
   {
@@ -193,10 +194,45 @@ const updateEmailTemplate = async (req, res) => {
       create: { key, name, subject, body },
     });
 
+    logAudit({
+      req,
+      action: 'EMAIL_TEMPLATE_UPDATE',
+      resource: 'email_config',
+      details: { key, name },
+    });
+
     return res.json(tpl);
   } catch (err) {
     console.error('Erro ao atualizar modelo de e-mail:', err);
     return res.status(500).json({ error: 'Erro ao salvar modelo de e-mail' });
+  }
+};
+
+const sendTestTemplateEmail = async (req, res) => {
+  const { target_email, subject, body } = req.body;
+
+  if (!target_email) {
+    return res.status(400).json({ error: 'O e-mail de destino é obrigatório para o teste' });
+  }
+
+  try {
+    await emailService.sendSampleTemplateEmail({
+      targetEmail: target_email,
+      rawSubject: subject,
+      rawBody: body,
+    });
+
+    logAudit({
+      req,
+      action: 'EMAIL_TEMPLATE_TEST_SEND',
+      resource: 'email_config',
+      details: { target_email },
+    });
+
+    return res.json({ message: `E-mail de teste enviado com sucesso para ${target_email}!` });
+  } catch (err) {
+    console.error('Erro ao enviar e-mail de teste do modelo:', err.message);
+    return res.status(400).json({ error: `Falha ao enviar e-mail de teste: ${err.message}` });
   }
 };
 
@@ -206,4 +242,5 @@ module.exports = {
   testEmailConfig,
   getEmailTemplates,
   updateEmailTemplate,
+  sendTestTemplateEmail,
 };
