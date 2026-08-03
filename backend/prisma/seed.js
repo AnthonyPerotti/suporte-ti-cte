@@ -6,6 +6,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
+  // Root default
+  const rootPassword = await bcrypt.hash('Root@123', 12);
+  const rootUser = await prisma.user.upsert({
+    where: { email: 'root@ufsm.br' },
+    update: { role: 'root' },
+    create: {
+      name: 'Super Root',
+      email: 'root@ufsm.br',
+      password_hash: rootPassword,
+      role: 'root',
+      department: 'TI Central',
+      force_password_change: false,
+    },
+  });
+  console.log(`Root created: ${rootUser.email}`);
+
   // Admin default
   const adminPassword = await bcrypt.hash('Admin@123', 12);
   const admin = await prisma.user.upsert({
@@ -152,6 +168,7 @@ async function main() {
   console.log('Templates created.');
   console.log('\nSeed completed successfully!');
   console.log('\nDefault credentials:');
+  console.log('  Root:      root@ufsm.br / Root@123');
   console.log('  Admin:     admin@cead.ufsm.br / Admin@123');
   console.log('  Technician: tecnico@cead.ufsm.br / Temp@123 (force change)');
   console.log('  User:      usuario@cead.ufsm.br / Temp@123 (force change)');

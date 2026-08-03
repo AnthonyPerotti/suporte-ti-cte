@@ -12,6 +12,7 @@ enum Role {
   user
   technician
   admin
+  root
 }
 
 enum TicketStatus {
@@ -236,5 +237,20 @@ model EmailTemplate {
   updated_at DateTime @updatedAt
 
   @@map("email_templates")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  user_id     String?
+  user_name   String?
+  user_email  String?
+  user_role   String?
+  action      String
+  resource    String
+  details     String?  @db.Text
+  ip_address  String?
+  created_at  DateTime @default(now())
+
+  @@map("audit_logs")
 }
 
