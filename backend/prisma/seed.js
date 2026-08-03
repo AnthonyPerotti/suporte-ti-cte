@@ -10,7 +10,7 @@ async function main() {
   const rootPassword = await bcrypt.hash('Root@123', 12);
   const rootUser = await prisma.user.upsert({
     where: { email: 'root@ufsm.br' },
-    update: { role: 'root' },
+    update: { role: 'root', password_hash: rootPassword, is_active: true },
     create: {
       name: 'Super Root',
       email: 'root@ufsm.br',
@@ -26,7 +26,7 @@ async function main() {
   const adminPassword = await bcrypt.hash('Admin@123', 12);
   const admin = await prisma.user.upsert({
     where: { email: 'admin@cead.ufsm.br' },
-    update: {},
+    update: { password_hash: adminPassword, is_active: true },
     create: {
       name: 'Administrador TI',
       email: 'admin@cead.ufsm.br',
@@ -42,7 +42,7 @@ async function main() {
   const techPassword = await bcrypt.hash('Temp@123', 12);
   const tech = await prisma.user.upsert({
     where: { email: 'tecnico@cead.ufsm.br' },
-    update: {},
+    update: { password_hash: techPassword, is_active: true },
     create: {
       name: 'Técnico TI',
       email: 'tecnico@cead.ufsm.br',
@@ -58,7 +58,7 @@ async function main() {
   const userPassword = await bcrypt.hash('Temp@123', 12);
   const user = await prisma.user.upsert({
     where: { email: 'usuario@cead.ufsm.br' },
-    update: {},
+    update: { password_hash: userPassword, is_active: true },
     create: {
       name: 'Usuário Teste',
       email: 'usuario@cead.ufsm.br',

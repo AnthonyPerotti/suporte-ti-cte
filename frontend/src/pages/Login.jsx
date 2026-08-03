@@ -20,7 +20,7 @@ const LoginPage = () => {
       if (data.force_password_change) {
         navigate('/change-password');
       } else {
-        const isStaff = ['admin', 'technician'].includes(data.user.role);
+        const isStaff = ['admin', 'technician', 'root'].includes(data.user.role);
         navigate(isStaff ? '/admin' : '/');
       }
     } catch (err) {

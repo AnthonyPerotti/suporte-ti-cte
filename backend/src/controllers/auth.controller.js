@@ -36,13 +36,20 @@ const login = async (req, res) => {
   }
 
   const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
-  if (!user || !user.is_active) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+  if (!user) {
+    console.log(`[LOGIN FAILED] User not found: ${cleanEmail}`);
+    return res.status(401).json({ error: 'Credenciais inválidas ou usuário não encontrado' });
+  }
+
+  if (!user.is_active) {
+    console.log(`[LOGIN FAILED] User inactive: ${cleanEmail}`);
+    return res.status(401).json({ error: 'Usuário inativo no sistema' });
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    return res.status(401).json({ error: 'Invalid credentials' });
+    console.log(`[LOGIN FAILED] Invalid password for: ${cleanEmail}`);
+    return res.status(401).json({ error: 'Senha incorreta' });
   }
 
   const { accessToken, refreshToken } = generateTokens(user.id);

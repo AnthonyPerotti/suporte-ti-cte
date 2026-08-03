@@ -6,7 +6,7 @@ RUN apk add --no-cache openssl
 RUN rm -f package-lock.json && npm install
 
 COPY . .
-RUN npx prisma@5 generate
+RUN ./node_modules/.bin/prisma generate
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
@@ -14,4 +14,4 @@ RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
 USER appuser
 EXPOSE 3001
 
-CMD ["sh", "-c", "npx prisma@5 db push --accept-data-loss && node prisma/seed.js && node src/server.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --accept-data-loss && node prisma/seed.js && node src/server.js"]
