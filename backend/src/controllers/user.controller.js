@@ -102,13 +102,16 @@ const updateUser = async (req, res) => {
     return res.status(400).json({ error: 'Você não pode alterar o seu próprio nível de acesso/cargo.' });
   }
 
-  // Protect Root account from being edited or demoted by non-root
+  // Protect Root account from being edited, demoted or deactivated/removed
   if (currentUser.role === 'root' || currentUser.email === 'root@ufsm.br') {
     if (req.user.role !== 'root') {
-      return res.status(403).json({ error: 'Apenas a conta Root pode alterar a própria conta Root.' });
+      return res.status(403).json({ error: 'Apenas a própria conta Root pode editar os dados da conta Root.' });
     }
     if (role !== undefined && role !== 'root') {
-      return res.status(400).json({ error: 'O nível de acesso da conta Root não pode ser alterado.' });
+      return res.status(400).json({ error: 'O nível de acesso da conta Root não pode ser alterado ou removido.' });
+    }
+    if (is_active === false) {
+      return res.status(400).json({ error: 'A conta Root não pode ser desativada ou removida.' });
     }
   }
 

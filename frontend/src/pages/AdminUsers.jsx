@@ -213,7 +213,7 @@ const AdminUsers = () => {
                     <select
                       className="form-select"
                       value={formData.role}
-                      disabled={isSelf || (isEditingRoot && currentUser?.role !== 'root')}
+                      disabled={isSelf || isEditingRoot}
                       onChange={e => setFormData(p => ({ ...p, role: e.target.value }))}
                     >
                       <option value="user">Usuário Comum</option>
@@ -228,9 +228,9 @@ const AdminUsers = () => {
                         Você não pode alterar seu próprio nível de acesso.
                       </div>
                     )}
-                    {isEditingRoot && !isSelf && (
+                    {isEditingRoot && (
                       <div className="form-hint" style={{ color: 'var(--color-warning)' }}>
-                        O nível de acesso da conta Root não pode ser modificado.
+                        O nível de acesso da conta Root não pode ser alterado ou removido.
                       </div>
                     )}
                   </div>
