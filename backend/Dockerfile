@@ -14,4 +14,4 @@ RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
 USER appuser
 EXPOSE 3001
 
-CMD ["sh", "-c", "./node_modules/.bin/prisma db push --accept-data-loss && node prisma/seed.js && node src/server.js"]
+CMD ["node", "src/server.js"]
