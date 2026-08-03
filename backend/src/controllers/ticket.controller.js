@@ -202,6 +202,9 @@ const createTicket = async (req, res) => {
         type: 'comment_added',
         metadata: { is_internal: false, auto_reply: true },
       },
+    });
+  }
+
   logAudit({
     req,
     action: 'TICKET_CREATE',
