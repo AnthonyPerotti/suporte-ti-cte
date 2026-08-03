@@ -62,7 +62,8 @@ services:
     container_name: suporte-ti-cte-frontend
     restart: unless-stopped
     ports:
-      - "3773:80" # Porta exposta do Frontend/Proxy Nginx
+      - "80:80"   
+      - "3773:80" 
     depends_on:
       - backend
 
