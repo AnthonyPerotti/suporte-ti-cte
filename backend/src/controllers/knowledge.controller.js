@@ -3,14 +3,13 @@ const prisma = new PrismaClient();
 
 const listArticles = async (req, res) => {
   const { search, category_id, published } = req.query;
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
-
-  const isAdmin = req.user.role === 'admin';
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
+  const isAdmin = ['admin', 'root'].includes(req.user.role);
 
   const where = {
     // Non-staff only see published articles
     ...(!isStaff && { published: true }),
-    ...(!isAdmin && { is_archived: false }), // only admins can see archived articles
+    ...(!isAdmin && { is_archived: false }), // only admins/root can see archived articles
     ...(published !== undefined && isStaff && { published: published === 'true' }),
     ...(category_id && { category_id }),
   };
@@ -25,14 +24,15 @@ const listArticles = async (req, res) => {
 };
 
 const getArticle = async (req, res) => {
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
+  const isAdmin = ['admin', 'root'].includes(req.user.role);
+
   const article = await prisma.knowledgeArticle.findUnique({
     where: { id: req.params.id },
     include: { author: { select: { name: true } }, category: { select: { name: true } } },
   });
   if (!article) return res.status(404).json({ error: 'Article not found' });
   
-  const isAdmin = req.user.role === 'admin';
   if (article.is_archived && !isAdmin) return res.status(404).json({ error: 'Article not found' });
   if (!isStaff && !article.published) return res.status(404).json({ error: 'Article not found' });
   return res.json(article);
@@ -72,6 +72,7 @@ const createArticle = async (req, res) => {
 
 const updateArticle = async (req, res) => {
   const { title, content, tags, category_id, published } = req.body;
+  const isAdmin = ['admin', 'root'].includes(req.user.role);
 
   const article = await prisma.knowledgeArticle.update({
     where: { id: req.params.id },
@@ -81,7 +82,7 @@ const updateArticle = async (req, res) => {
       ...(tags !== undefined && { tags }),
       ...(category_id !== undefined && { category_id }),
       ...(published !== undefined && { published: Boolean(published) }),
-      ...(req.body.is_archived !== undefined && req.user.role === 'admin' && { is_archived: Boolean(req.body.is_archived) }),
+      ...(req.body.is_archived !== undefined && isAdmin && { is_archived: Boolean(req.body.is_archived) }),
     },
     include: { author: { select: { name: true } } },
   });

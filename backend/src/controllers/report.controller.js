@@ -103,7 +103,7 @@ const getDashboard = async (req, res) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
-  const isStaff = ['admin', 'technician'].includes(req.user.role);
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
   const assigneeFilter = req.user.role === 'technician' ? { assignee_id: req.user.id } : {};
 
   const baseFilter = { is_archived: false, ...assigneeFilter };
@@ -153,7 +153,7 @@ const getDashboard = async (req, res) => {
 const bcrypt = require('bcryptjs');
 
 const purgeTickets = async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  if (!['admin', 'root'].includes(req.user.role)) return res.status(403).json({ error: 'Forbidden' });
 
   const { from, to, password } = req.body;
   if (!from || !to || !password) return res.status(400).json({ error: 'Missing parameters' });

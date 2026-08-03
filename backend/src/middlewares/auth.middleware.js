@@ -34,6 +34,10 @@ const authorize = (...roles) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
+    // Root user automatically inherits all permissions across all endpoints
+    if (req.user.role === 'root') {
+      return next();
+    }
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Insufficient permissions' });
     }

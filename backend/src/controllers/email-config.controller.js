@@ -8,7 +8,7 @@ const DEFAULT_TEMPLATES = [
     key: 'ticket_created_user',
     name: 'Confirmação / Backup de Abertura de Chamado (Usuário)',
     subject: '[Chamado #{ticket_id}] {ticket_title}',
-    body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Chamado Registrado (Backup)</h2>
+    body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Chamado Registrado</h2>
 <p>Olá, <strong>{user_name}</strong>!</p>
 <p>Seu chamado foi registrado com sucesso em nosso sistema como backup. Seguem os detalhes do seu registro:</p>
 <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:20px;margin:20px 0;">
