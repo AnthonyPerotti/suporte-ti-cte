@@ -12,6 +12,7 @@ const templateRoutes = require('./routes/template.routes');
 const knowledgeRoutes = require('./routes/knowledge.routes');
 const calendarRoutes = require('./routes/calendar.routes');
 const reportRoutes = require('./routes/report.routes');
+const emailConfigRoutes = require('./routes/email-config.routes');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/templates', templateRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/email-config', emailConfigRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -14,6 +14,7 @@ import AdminTickets from './pages/AdminTickets';
 import AdminUsers from './pages/AdminUsers';
 import AdminCategories from './pages/AdminCategories';
 import AdminTemplates from './pages/AdminTemplates';
+import AdminEmailSettings from './pages/AdminEmailSettings';
 import Knowledge from './pages/Knowledge';
 import KnowledgeDetail from './pages/KnowledgeDetail';
 import Calendar from './pages/Calendar';
@@ -59,6 +60,7 @@ const App = () => {
             <Route path="/admin/users" element={<PrivateRoute roles={['admin']}><AdminUsers /></PrivateRoute>} />
             <Route path="/admin/categories" element={<PrivateRoute roles={['admin']}><AdminCategories /></PrivateRoute>} />
             <Route path="/admin/templates" element={<PrivateRoute roles={['admin']}><AdminTemplates /></PrivateRoute>} />
+            <Route path="/admin/email-settings" element={<PrivateRoute roles={['admin']}><AdminEmailSettings /></PrivateRoute>} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

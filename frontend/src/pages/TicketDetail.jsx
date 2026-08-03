@@ -204,7 +204,10 @@ const TicketDetail = () => {
   const isUnassignedTech = isStaff && user.role === 'technician' && !ticket.assignee_id;
   const isAssignedToOther = isStaff && user.role === 'technician' && ticket.assignee_id && ticket.assignee_id !== user.id;
 
-  const nextStatuses = (isStaff && canEdit) ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
+  let nextStatuses = (isStaff && canEdit) ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
+  if (ticket.status === 'closed' && user.role !== 'admin') {
+    nextStatuses = [];
+  }
 
   const timelineItems = [
     ...(ticket.events || []).map(e => ({ ...e, _itemType: 'event' })),
@@ -507,17 +510,26 @@ const TicketDetail = () => {
             )}
 
             {/* Status actions */}
-            {isStaff && nextStatuses.length > 0 && (
-              <div className="card" style={{ marginBottom: 16 }}>
-                <div className="card-title">Alterar Status</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {nextStatuses.map(s => (
-                    <button key={s} className="btn btn-secondary btn-sm" onClick={() => updateStatus(s)}>
-                      {STATUS_LABELS[s]}
-                    </button>
-                  ))}
+            {isStaff && (
+              ticket.status === 'closed' && user.role !== 'admin' ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="card-title">Alterar Status</div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                    Este chamado está encerrado. Apenas administradores podem reabri-lo.
+                  </p>
                 </div>
-              </div>
+              ) : nextStatuses.length > 0 ? (
+                <div className="card" style={{ marginBottom: 16 }}>
+                  <div className="card-title">Alterar Status</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {nextStatuses.map(s => (
+                      <button key={s} className="btn btn-secondary btn-sm" onClick={() => updateStatus(s)}>
+                        {STATUS_LABELS[s]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null
             )}
 
             {/* Properties */}

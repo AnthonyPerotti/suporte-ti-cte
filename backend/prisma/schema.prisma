@@ -212,3 +212,29 @@ model CalendarEvent {
 
   @@map("calendar_events")
 }
+
+model EmailConfig {
+  id          String   @id @default("default")
+  smtp_host   String?
+  smtp_port   Int      @default(587)
+  smtp_secure Boolean  @default(false)
+  smtp_user   String?
+  smtp_pass   String?
+  from_email  String?
+  from_name   String?  @default("Suporte TI CTE")
+  updated_at  DateTime @updatedAt
+
+  @@map("email_configs")
+}
+
+model EmailTemplate {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  name       String
+  subject    String
+  body       String   @db.Text
+  updated_at DateTime @updatedAt
+
+  @@map("email_templates")
+}
+

@@ -225,6 +225,11 @@ const updateTicket = async (req, res) => {
   }
 
   if (status && status !== current.status) {
+    // Only admin can reopen a closed ticket
+    if (current.status === 'closed' && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Apenas administradores podem reabrir um chamado encerrado.' });
+    }
+
     // If ticket is reopened (was closed/resolved, now open/in_progress)
     if (['resolved', 'closed'].includes(current.status) && ['open', 'in_progress'].includes(status)) {
       data.rating = null;
@@ -356,6 +361,7 @@ const addComment = async (req, res) => {
       user: ticket.user,
       technician: ticket.assignee,
       commentAuthor: req.user,
+      commentContent: comment.content,
     }).catch(console.error);
   }
 
