@@ -29,12 +29,13 @@ const login = async (req, res) => {
     return res.status(400).json({ error: 'Email and password are required' });
   }
 
-  const domain = email.split('@')[1];
+  const cleanEmail = email.trim().toLowerCase();
+  const domain = cleanEmail.split('@')[1];
   if (!ALLOWED_DOMAINS.includes(domain)) {
     return res.status(400).json({ error: 'Email domain not allowed. Use your institutional email.' });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
   if (!user || !user.is_active) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
