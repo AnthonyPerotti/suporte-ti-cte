@@ -45,7 +45,7 @@ Sistema completo de suporte técnico interno, gestão de chamados, auditoria de 
    ```
 
 - **Backend (API):** `3772`
-- **Frontend (SPA + Proxy Nginx):** `80` (e porta alternativa `3773`)
+- **Frontend (SPA + Proxy Nginx):** `80` (configurável via variável de ambiente `FRONTEND_PORT`)
 
 ## Deploy via Portainer (Produção)
 
