@@ -62,7 +62,7 @@ services:
     container_name: suporte-ti-cte-frontend
     restart: unless-stopped
     ports:
-      - "3773:80" 
+      - "${FRONTEND_PORT:-80}:80" 
     depends_on:
       - backend
 
