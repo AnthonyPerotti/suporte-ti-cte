@@ -110,6 +110,36 @@ const NewTicket = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24 }}>
           {/* Main form */}
           <form onSubmit={handleSubmit}>
+            {isStaff && (
+              <div className="card" style={{ marginBottom: 16, border: '1px solid var(--color-primary)', background: 'var(--color-surface)' }}>
+                <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-primary)' }}>
+                  👔 Opções da Equipe de Suporte
+                </div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="onBehalfMain">Solicitante (Abrir chamado em nome de...)</label>
+                    <select id="onBehalfMain" className="form-select" value={onBehalfUserId} onChange={e => setOnBehalfUserId(e.target.value)}>
+                      <option value="">Você ({user?.name})</option>
+                      {allUsers.filter(u => u.id !== user?.id).map(u => (
+                        <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label" htmlFor="assigneeMain">Atribuir diretamente a...</label>
+                    <select id="assigneeMain" className="form-select" value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
+                      <option value="">Deixar em aberto (Sem atribuição)</option>
+                      {technicians.map(t => (
+                        <option key={t.id} value={t.id}>{t.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Detalhes do Chamado</div>
 
