@@ -76,9 +76,14 @@ const AdminTickets = () => {
             <h1 className="page-title">Fila de Chamados</h1>
             <p className="page-subtitle">Gerencie todos os atendimentos do sistema.</p>
           </div>
-          <button className="btn btn-secondary" onClick={fetchTickets} disabled={loading}>
-            ↻ Recarregar
-          </button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-primary" onClick={() => navigate('/new-ticket')}>
+              + Novo Chamado
+            </button>
+            <button className="btn btn-secondary" onClick={fetchTickets} disabled={loading}>
+              ↻ Recarregar
+            </button>
+          </div>
         </div>
 
         <div className="filter-row">
