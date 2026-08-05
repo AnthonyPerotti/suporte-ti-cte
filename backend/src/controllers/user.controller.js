@@ -24,7 +24,7 @@ const listUsers = async (req, res) => {
     prisma.user.findMany({
       where,
       select: { id: true, name: true, email: true, role: true, department: true, avatar_url: true, is_active: true, created_at: true, force_password_change: true },
-      orderBy: { created_at: 'desc' },
+      orderBy: { name: 'asc' },
       skip,
       take: parseInt(limit),
     }),

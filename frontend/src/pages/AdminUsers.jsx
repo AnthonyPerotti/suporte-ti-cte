@@ -103,6 +103,7 @@ const AdminUsers = () => {
 
   const isSelf = editingUser && editingUser.id === currentUser?.id;
   const isEditingRoot = editingUser && (editingUser.role === 'root' || editingUser.email === 'root@ufsm.br');
+  const pages = Math.ceil(total / limit);
 
   return (
     <div className="app-layout">
@@ -178,6 +179,20 @@ const AdminUsers = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {pages > 1 && (
+          <div className="pagination">
+            <button className="pagination-btn" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+              ←
+            </button>
+            <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: '0 12px' }}>
+              Página {page} de {pages} (Total: {total} usuários)
+            </span>
+            <button className="pagination-btn" disabled={page === pages} onClick={() => setPage((p) => p + 1)}>
+              →
+            </button>
           </div>
         )}
 
