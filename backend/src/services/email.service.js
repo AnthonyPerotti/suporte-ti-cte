@@ -417,9 +417,54 @@ const sendSampleTemplateEmail = async ({ targetEmail, rawSubject, rawBody }) => 
   });
 };
 
+const sendTicketAssignedToTech = async ({ ticket, assignee, actor }) => {
+  if (!assignee || !assignee.email) return;
+  const transportObj = await getTransporter();
+  if (!transportObj) return;
+  const { transporter, config } = transportObj;
+
+  const ticketIdShort = ticket.id.slice(0, 8).toUpperCase();
+  const defaultSubject = `[Chamado #${ticketIdShort}] ${ticket.title}`;
+  const defaultBody = `
+    <h2 style="color:#1e3a5f;margin:0 0 16px;">Chamado Atribuído / Tramitado</h2>
+    <p>Olá, <strong>{assignee_name}</strong>!</p>
+    <p>O chamado <strong>#{ticket_id}</strong> foi atribuído / tramitado para você por <strong>{actor_name}</strong>.</p>
+    <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:20px;margin:20px 0;">
+      <p style="margin:0 0 8px;"><strong>Número do Chamado:</strong> #{ticket_id}</p>
+      <p style="margin:0 0 8px;"><strong>Título:</strong> {ticket_title}</p>
+      <p style="margin:0 0 8px;"><strong>Solicitante:</strong> {user_name}</p>
+      <p style="margin:0 0 8px;"><strong>Prioridade:</strong> {ticket_priority}</p>
+    </div>
+    <p>Acesse o sistema para dar andamento ao atendimento.</p>
+  `;
+
+  const template = await getTemplate('ticket_assigned_tech', defaultSubject, defaultBody);
+  const data = {
+    assignee_name: assignee.name,
+    actor_name: actor ? actor.name : 'Sistema',
+    user_name: ticket.user ? ticket.user.name : 'Usuário',
+    ticket_id: ticketIdShort,
+    ticket_title: ticket.title,
+    ticket_priority: ticket.priority,
+  };
+
+  const subject = renderTemplate(template.subject, data);
+  const html = buildEmailWrapper(renderTemplate(template.body, data));
+  const fromAddress = `"${config.fromName}" <${config.fromEmail}>`;
+
+  await transporter.sendMail({
+    from: fromAddress,
+    to: assignee.email,
+    subject,
+    html,
+    headers: getThreadHeaders(ticket.id),
+  });
+};
+
 module.exports = {
   sendTicketCreatedToUser,
   sendTicketCreatedToTeam,
+  sendTicketAssignedToTech,
   sendStatusUpdate,
   sendNewComment,
   testSmtpConnection,

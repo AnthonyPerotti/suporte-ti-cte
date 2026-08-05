@@ -5,8 +5,10 @@ import { useToast } from '../contexts/ToastContext';
 
 const ACTION_LABELS = {
   LOGIN: 'Login no Sistema',
+  LOGIN_FAILED: 'Falha no Login',
   LOGOUT: 'Logout do Sistema',
   TICKET_CREATE: 'Chamado Criado',
+  CREATE_TICKET: 'Chamado Criado',
   TICKET_UPDATE_STATUS: 'Status de Chamado Alterado',
   TICKET_ARCHIVE: 'Chamado Arquivado',
   TICKET_UNARCHIVE: 'Chamado Desarquivado',

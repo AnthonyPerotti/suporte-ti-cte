@@ -491,7 +491,7 @@ const TicketDetail = () => {
                   <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>Não atribuído</p>
                 )}
                 
-                {user.role === 'admin' ? (
+                {['admin', 'root'].includes(user?.role) ? (
                   <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                     <option value="">Sem atribuição</option>
                     {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}

@@ -32,23 +32,27 @@ const login = async (req, res) => {
   const cleanEmail = email.trim().toLowerCase();
   const domain = cleanEmail.split('@')[1];
   if (!ALLOWED_DOMAINS.includes(domain)) {
+    logAudit({ req, action: 'LOGIN_FAILED', resource: 'auth', details: { email: cleanEmail, reason: 'Domínio não permitido' } });
     return res.status(400).json({ error: 'Email domain not allowed. Use your institutional email.' });
   }
 
   const user = await prisma.user.findUnique({ where: { email: cleanEmail } });
   if (!user) {
     console.log(`[LOGIN FAILED] User not found: ${cleanEmail}`);
+    logAudit({ req, action: 'LOGIN_FAILED', resource: 'auth', details: { email: cleanEmail, reason: 'Usuário não encontrado' } });
     return res.status(401).json({ error: 'Credenciais inválidas ou usuário não encontrado' });
   }
 
   if (!user.is_active) {
     console.log(`[LOGIN FAILED] User inactive: ${cleanEmail}`);
+    logAudit({ req, user, action: 'LOGIN_FAILED', resource: 'auth', details: { email: cleanEmail, reason: 'Usuário inativo' } });
     return res.status(401).json({ error: 'Usuário inativo no sistema' });
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
     console.log(`[LOGIN FAILED] Invalid password for: ${cleanEmail}`);
+    logAudit({ req, user, action: 'LOGIN_FAILED', resource: 'auth', details: { email: cleanEmail, reason: 'Senha incorreta' } });
     return res.status(401).json({ error: 'Senha incorreta' });
   }
 

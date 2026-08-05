@@ -27,6 +27,8 @@ const AdminTickets = () => {
   const [search, setSearch] = useState('');
   const [technicians, setTechnicians] = useState([]);
   const [assigneeId, setAssigneeId] = useState('');
+  const [requesters, setRequesters] = useState([]);
+  const [requesterId, setRequesterId] = useState('');
   const [showArchived, setShowArchived] = useState(false);
   
   const navigate = useNavigate();
@@ -37,7 +39,15 @@ const AdminTickets = () => {
   const fetchTickets = async () => {
     setLoading(true);
     try {
-      const params = { page, limit, ...(status && { status }), ...(search && { search }), ...(assigneeId && { assignee_id: assigneeId }), archived: showArchived };
+      const params = {
+        page,
+        limit,
+        ...(status && { status }),
+        ...(search && { search }),
+        ...(assigneeId && { assignee_id: assigneeId }),
+        ...(requesterId && { user_id: requesterId }),
+        archived: showArchived,
+      };
       const { data } = await api.get('/tickets', { params });
       setTickets(data.tickets);
       setTotal(data.total);
@@ -50,9 +60,10 @@ const AdminTickets = () => {
 
   useEffect(() => {
     api.get('/users/technicians').then(({ data }) => setTechnicians(data)).catch(() => {});
+    api.get('/users', { params: { limit: 100 } }).then(({ data }) => setRequesters(data.users || [])).catch(() => {});
   }, []);
 
-  useEffect(() => { fetchTickets(); }, [page, status, search, assigneeId, showArchived]);
+  useEffect(() => { fetchTickets(); }, [page, status, search, assigneeId, requesterId, showArchived]);
 
   const pages = Math.ceil(total / limit);
 
@@ -85,6 +96,10 @@ const AdminTickets = () => {
           </div>
           <select className="form-select" style={{ width: 'auto' }} value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}>
             {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <select className="form-select" style={{ width: 'auto' }} value={requesterId} onChange={e => { setRequesterId(e.target.value); setPage(1); }}>
+            <option value="">Qualquer solicitante</option>
+            {requesters.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
           <select className="form-select" style={{ width: 'auto' }} value={assigneeId} onChange={e => { setAssigneeId(e.target.value); setPage(1); }}>
             <option value="">Qualquer técnico</option>

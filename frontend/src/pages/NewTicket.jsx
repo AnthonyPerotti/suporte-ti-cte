@@ -3,15 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const NewTicket = () => {
+  const { user } = useAuth();
+  const isStaff = ['admin', 'technician', 'root'].includes(user?.role);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const [categoryId, setCategoryId] = useState('');
   const [subcategoryId, setSubcategoryId] = useState('');
+  const [onBehalfUserId, setOnBehalfUserId] = useState('');
+  const [assigneeId, setAssigneeId] = useState('');
+
   const [files, setFiles] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
+
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -23,7 +33,11 @@ const NewTicket = () => {
 
   useEffect(() => {
     api.get('/categories').then(({ data }) => setCategories(data)).catch(() => {});
-  }, []);
+    if (isStaff) {
+      api.get('/users', { params: { limit: 100 } }).then(({ data }) => setAllUsers(data.users || [])).catch(() => {});
+      api.get('/users/technicians').then(({ data }) => setTechnicians(data)).catch(() => {});
+    }
+  }, [isStaff]);
 
   const selectedCategory = categories.find(c => c.id === categoryId);
   const subcategories = selectedCategory?.children || [];
@@ -64,6 +78,9 @@ const NewTicket = () => {
 
       if (subcategoryId) formData.append('category_id', subcategoryId);
       else if (categoryId) formData.append('category_id', categoryId);
+      if (onBehalfUserId) formData.append('user_id', onBehalfUserId);
+      if (assigneeId) formData.append('assignee_id', assigneeId);
+
       files.forEach(f => formData.append('attachments', f));
 
       const { data } = await api.post('/tickets', formData, {
@@ -193,6 +210,32 @@ const NewTicket = () => {
 
           {/* Sidebar options */}
           <div>
+            {isStaff && (
+              <div className="card" style={{ marginBottom: 16 }}>
+                <div className="card-title">Opções de Atendimento</div>
+                
+                <div className="form-group">
+                  <label className="form-label" htmlFor="onBehalf">Solicitante (Abrir em nome de...)</label>
+                  <select id="onBehalf" className="form-select" value={onBehalfUserId} onChange={e => setOnBehalfUserId(e.target.value)}>
+                    <option value="">Você ({user?.name})</option>
+                    {allUsers.filter(u => u.id !== user?.id).map(u => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" htmlFor="assignee">Atribuir diretamente a...</label>
+                  <select id="assignee" className="form-select" value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
+                    <option value="">Deixar em aberto (Sem atribuição)</option>
+                    {technicians.map(t => (
+                      <option key={t.id} value={t.id}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Classificação</div>
 

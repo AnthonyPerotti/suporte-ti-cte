@@ -76,6 +76,21 @@ const DEFAULT_TEMPLATES = [
 </div>
 <p>Acesse o sistema para verificar e dar andamento ao atendimento.</p>`,
   },
+  {
+    key: 'ticket_assigned_tech',
+    name: 'Notificação de Atribuição / Tramitação para o Técnico',
+    subject: '[Chamado #{ticket_id}] {ticket_title}',
+    body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Chamado Atribuído / Tramitado</h2>
+<p>Olá, <strong>{assignee_name}</strong>!</p>
+<p>O chamado <strong>#{ticket_id}</strong> foi atribuído / tramitado para você por <strong>{actor_name}</strong>.</p>
+<div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:20px;margin:20px 0;">
+  <p style="margin:0 0 8px;"><strong>Número do Chamado:</strong> #{ticket_id}</p>
+  <p style="margin:0 0 8px;"><strong>Título:</strong> {ticket_title}</p>
+  <p style="margin:0 0 8px;"><strong>Solicitante:</strong> {user_name}</p>
+  <p style="margin:0 0 8px;"><strong>Prioridade:</strong> {ticket_priority}</p>
+</div>
+<p>Acesse o sistema para dar andamento ao atendimento.</p>`,
+  },
 ];
 
 const getEmailConfig = async (req, res) => {

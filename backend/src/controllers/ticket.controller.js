@@ -31,14 +31,15 @@ const ticketSelect = {
 };
 
 const listTickets = async (req, res) => {
-  const { status, priority, category_id, assignee_id, search, archived, page = 1, limit = 20 } = req.query;
+  const { status, priority, category_id, assignee_id, user_id, search, page = 1, limit = 15, is_archived } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
   const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
 
   const where = {
-    is_archived: archived === 'true',
+    ...(is_archived === 'true' ? { is_archived: true } : { is_archived: false }),
     // Regular users only see their own tickets
     ...(!isStaff && { user_id: req.user.id }),
+    ...(user_id && { user_id }),
     ...(status && status !== 'active' && { status }),
     ...(status === 'active' && { status: { notIn: ['closed'] } }),
     ...(priority && { priority }),
@@ -78,41 +79,54 @@ const getTicket = async (req, res) => {
     where: { id: req.params.id },
     select: {
       ...ticketSelect,
-      comments: {
-        where: isStaff ? {} : { is_internal: false },
-        include: { author: { select: { id: true, name: true, avatar_url: true, role: true } } },
-        orderBy: { created_at: 'asc' },
-      },
       events: {
-        include: { actor: { select: { id: true, name: true, role: true } } },
         orderBy: { created_at: 'asc' },
+        include: { actor: { select: { id: true, name: true, role: true, avatar_url: true } } },
+      },
+      comments: {
+        orderBy: { created_at: 'asc' },
+        include: { author: { select: { id: true, name: true, role: true, avatar_url: true } } },
       },
     },
   });
 
   if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
 
-  // Non-staff can only see their own tickets
   if (!isStaff && ticket.user_id !== req.user.id) {
-    return res.status(403).json({ error: 'Forbidden' });
+    return res.status(403).json({ error: 'Access denied' });
   }
 
-  // Filter internal events for non-staff
-  if (!isStaff && ticket.events) {
-    ticket.events = ticket.events.filter(e => !e.metadata || !e.metadata.is_internal);
-  }
-
-  return res.json({
+  const withSla = {
     ...ticket,
     sla_status: ticket.status !== 'closed' && ticket.status !== 'resolved' ? getSlaStatus(ticket.updated_at) : 'ok',
-  });
+  };
+
+  return res.json(withSla);
 };
 
 const createTicket = async (req, res) => {
-  const { title, description, category_id, priority = 'normal' } = req.body;
+  const { title, description, category_id, priority = 'normal', user_id, assignee_id } = req.body;
 
   if (!title || !description) {
     return res.status(400).json({ error: 'Title and description are required' });
+  }
+
+  const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
+
+  let targetUserId = req.user.id;
+  if (isStaff && user_id) {
+    const targetUser = await prisma.user.findUnique({ where: { id: user_id } });
+    if (targetUser) targetUserId = targetUser.id;
+  }
+
+  let targetAssigneeId = null;
+  let initialStatus = 'open';
+  if (isStaff && assignee_id) {
+    const targetTech = await prisma.user.findUnique({ where: { id: assignee_id } });
+    if (targetTech) {
+      targetAssigneeId = targetTech.id;
+      initialStatus = 'in_progress';
+    }
   }
 
   const ticket = await prisma.ticket.create({
@@ -121,7 +135,9 @@ const createTicket = async (req, res) => {
       description,
       priority,
       category_id: category_id || null,
-      user_id: req.user.id,
+      user_id: targetUserId,
+      assignee_id: targetAssigneeId,
+      status: initialStatus,
     },
   });
 
@@ -147,16 +163,35 @@ const createTicket = async (req, res) => {
     },
   });
 
+  if (targetAssigneeId) {
+    await prisma.ticketEvent.create({
+      data: {
+        ticket_id: ticket.id,
+        actor_id: req.user.id,
+        type: 'assignment',
+        metadata: { assignee_id: targetAssigneeId },
+      },
+    });
+  }
+
   // Fire emails (non-blocking)
-  const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: { name: true, email: true } });
+  const requesterUser = await prisma.user.findUnique({ where: { id: targetUserId }, select: { name: true, email: true } });
   const teamMembers = await prisma.user.findMany({
-    where: { role: { in: ['admin', 'technician'] }, is_active: true },
+    where: { role: { in: ['admin', 'technician', 'root'] }, is_active: true },
     select: { email: true },
   });
   const teamEmails = teamMembers.map(m => m.email);
 
-  emailService.sendTicketCreatedToUser({ ticket, user }).catch(console.error);
-  emailService.sendTicketCreatedToTeam({ ticket, user, teamEmails }).catch(console.error);
+  emailService.sendTicketCreatedToUser({ ticket, user: requesterUser }).catch(console.error);
+
+  if (targetAssigneeId) {
+    const assignee = await prisma.user.findUnique({ where: { id: targetAssigneeId }, select: { id: true, name: true, email: true } });
+    if (assignee) {
+      emailService.sendTicketAssignedToTech({ ticket, assignee, actor: req.user }).catch(console.error);
+    }
+  } else {
+    emailService.sendTicketCreatedToTeam({ ticket, user: requesterUser, teamEmails }).catch(console.error);
+  }
 
   // Automated first reply
   let systemAdmin = await prisma.user.findFirst({
@@ -198,9 +233,9 @@ const createTicket = async (req, res) => {
 
   logAudit({
     req,
-    action: 'TICKET_CREATE',
-    resource: 'tickets',
-    details: { ticket_id: ticket.id, title: ticket.title, priority: ticket.priority },
+    action: 'CREATE_TICKET',
+    resource: 'ticket',
+    details: { ticket_id: ticket.id, title: ticket.title, on_behalf_of: targetUserId },
   });
 
   return res.status(201).json(ticket);
@@ -208,8 +243,7 @@ const createTicket = async (req, res) => {
 
 const updateTicket = async (req, res) => {
   const isStaff = ['admin', 'technician', 'root'].includes(req.user.role);
-
-  if (!isStaff) return res.status(403).json({ error: 'Forbidden' });
+  if (!isStaff) return res.status(403).json({ error: 'Access denied' });
 
   const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
   if (!current) return res.status(404).json({ error: 'Ticket not found' });
@@ -279,6 +313,15 @@ const updateTicket = async (req, res) => {
     await prisma.ticketEvent.create({
       data: { ticket_id: ticket.id, actor_id: eventActorId, ...ev },
     });
+  }
+
+  // Send assignment email to the new technician if reassigned
+  if (assignee_id !== undefined && assignee_id !== current.assignee_id && ticket.assignee) {
+    emailService.sendTicketAssignedToTech({
+      ticket,
+      assignee: ticket.assignee,
+      actor: req.user,
+    }).catch(console.error);
   }
 
   // Send status update email (non-blocking)
