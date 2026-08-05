@@ -45,6 +45,7 @@ const AdminUsers = () => {
       if (editingUser) {
         await api.put(`/users/${editingUser.id}`, {
           name: formData.name,
+          email: formData.email,
           department: formData.department,
           role: formData.role,
         });
@@ -194,18 +195,24 @@ const AdminUsers = () => {
                   <label className="form-label">Nome Completo</label>
                   <input type="text" className="form-input" required value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} />
                 </div>
+                <div className="form-group">
+                  <label className="form-label">E-mail Institucional</label>
+                  <input
+                    type="email"
+                    className="form-input"
+                    required
+                    disabled={isEditingRoot}
+                    value={formData.email}
+                    onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
+                    placeholder="@ufsm.br ou @cead.ufsm.br"
+                  />
+                </div>
                 {!editingUser && (
-                  <>
-                    <div className="form-group">
-                      <label className="form-label">E-mail Institucional</label>
-                      <input type="email" className="form-input" required value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="@ufsm.br ou @cead.ufsm.br" />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Senha Temporária</label>
-                      <input type="text" className="form-input" required value={formData.temp_password} onChange={e => setFormData(p => ({ ...p, temp_password: e.target.value }))} />
-                      <div className="form-hint">O usuário será forçado a trocar no primeiro acesso.</div>
-                    </div>
-                  </>
+                  <div className="form-group">
+                    <label className="form-label">Senha Temporária</label>
+                    <input type="text" className="form-input" required value={formData.temp_password} onChange={e => setFormData(p => ({ ...p, temp_password: e.target.value }))} />
+                    <div className="form-hint">O usuário será forçado a trocar no primeiro acesso.</div>
+                  </div>
                 )}
                 <div className="grid-2">
                   <div className="form-group">
