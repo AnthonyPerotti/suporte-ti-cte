@@ -6,16 +6,7 @@ const { logAudit } = require('../services/audit.service');
 
 const prisma = new PrismaClient();
 
-const SLA_WARN_HOURS = 24;
-const SLA_CRIT_HOURS = 48;
-
-const getSlaStatus = (updatedAt) => {
-  const diffMs = Date.now() - new Date(updatedAt).getTime();
-  const diffHours = diffMs / (1000 * 60 * 60);
-  if (diffHours >= SLA_CRIT_HOURS) return 'critical';
-  if (diffHours >= SLA_WARN_HOURS) return 'warning';
-  return 'ok';
-};
+const { getSlaStatus } = require('../services/sla.service');
 
 const ticketSelect = {
   id: true,

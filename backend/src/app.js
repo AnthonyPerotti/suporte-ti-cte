@@ -41,7 +41,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20,
-  message: { error: 'Too many requests, please try again later.' },
+  message: { error: 'Muitas tentativas de acesso. Por favor, aguarde 15 minutos e tente novamente.' },
 });
 
 // Static file serving for uploads

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { getSlaStatus } = require('../services/sla.service');
 
 const getReports = async (req, res) => {
   const { from, to, technician_id, category_id } = req.query;
@@ -108,29 +109,27 @@ const getDashboard = async (req, res) => {
 
   const baseFilter = { is_archived: false, ...assigneeFilter };
 
-  const [openToday, totalOpen, inProgress, waitingUser, criticalSla, warningSla] = await Promise.all([
+  const [openToday, totalOpen, inProgress, waitingUser, activeTickets] = await Promise.all([
     prisma.ticket.count({ where: { created_at: { gte: today, lt: tomorrow }, ...baseFilter } }),
     prisma.ticket.count({ where: { status: 'open', ...baseFilter } }),
     prisma.ticket.count({ where: { status: 'in_progress', ...baseFilter } }),
     prisma.ticket.count({ where: { status: 'waiting_user', ...baseFilter } }),
-    prisma.ticket.count({
+    prisma.ticket.findMany({
       where: {
         status: { in: ['open', 'in_progress'] },
-        updated_at: { lte: new Date(Date.now() - 48 * 60 * 60 * 1000) },
         ...baseFilter,
       },
-    }),
-    prisma.ticket.count({
-      where: {
-        status: { in: ['open', 'in_progress'] },
-        updated_at: {
-          lte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          gte: new Date(Date.now() - 48 * 60 * 60 * 1000),
-        },
-        ...baseFilter,
-      },
+      select: { updated_at: true },
     }),
   ]);
+
+  let criticalSla = 0;
+  let warningSla = 0;
+  activeTickets.forEach((t) => {
+    const status = getSlaStatus(t.updated_at);
+    if (status === 'critical') criticalSla++;
+    else if (status === 'warning') warningSla++;
+  });
 
   // Last 30 days by day
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
