@@ -23,7 +23,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: 'ticket_created_team',
     name: 'Notificação de Novo Chamado (Equipe TI)',
-    subject: '[Novo Chamado] #{ticket_id} - {ticket_title}',
+    subject: '[Chamado #{ticket_id}] {ticket_title}',
     body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Novo Chamado Recebido</h2>
 <p>Um novo chamado foi aberto e está aguardando atendimento da equipe.</p>
 <div style="background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:20px;margin:20px 0;">
@@ -39,7 +39,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: 'status_update',
     name: 'Atualização de Status do Chamado',
-    subject: '[Chamado #{ticket_id}] Status alterado para {status}',
+    subject: '[Chamado #{ticket_id}] {ticket_title}',
     body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Atualização de Status do Chamado</h2>
 <p>Olá, <strong>{user_name}</strong>!</p>
 <p>O status do seu chamado <strong>#{ticket_id}</strong> foi alterado.</p>
@@ -53,7 +53,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: 'comment_tech_to_user',
     name: 'Nova Resposta da Equipe de TI para o Usuário',
-    subject: '[Chamado #{ticket_id}] Nova mensagem da Equipe de TI',
+    subject: '[Chamado #{ticket_id}] {ticket_title}',
     body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Nova Resposta da Equipe de TI</h2>
 <p>Olá, <strong>{user_name}</strong>!</p>
 <p><strong>{author_name}</strong> adicionou uma resposta ao seu chamado <strong>#{ticket_id}</strong>:</p>
@@ -66,7 +66,7 @@ const DEFAULT_TEMPLATES = [
   {
     key: 'comment_user_to_tech',
     name: 'Nova Resposta do Usuário para o Técnico Responsável',
-    subject: '[Chamado #{ticket_id}] Nova mensagem do usuário {user_name}',
+    subject: '[Chamado #{ticket_id}] {ticket_title}',
     body: `<h2 style="color:#1e3a5f;margin:0 0 16px;">Nova Resposta do Usuário</h2>
 <p>Olá, <strong>{tech_name}</strong>!</p>
 <p>O usuário <strong>{user_name}</strong> atualizou/respondeu o chamado <strong>#{ticket_id}</strong>:</p>

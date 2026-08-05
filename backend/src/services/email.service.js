@@ -210,7 +210,7 @@ const sendTicketCreatedToTeam = async ({ ticket, user, teamEmails }) => {
   const { transporter, config } = transportObj;
 
   const ticketIdShort = ticket.id.slice(0, 8).toUpperCase();
-  const defaultSubject = `[Novo Chamado] #${ticketIdShort} - ${ticket.title}`;
+  const defaultSubject = `[Chamado #${ticketIdShort}] ${ticket.title}`;
   const defaultBody = `
     <h2 style="color:#1e3a5f;margin:0 0 16px;">Novo Chamado Recebido</h2>
     <p>Um novo chamado foi aberto e está aguardando atendimento da equipe.</p>
@@ -264,7 +264,7 @@ const sendStatusUpdate = async ({ ticket, user, technician, newStatus }) => {
   const ticketIdShort = ticket.id.slice(0, 8).toUpperCase();
   const statusName = statusLabels[newStatus] || newStatus;
 
-  const defaultSubject = `[Chamado #${ticketIdShort}] Status alterado para ${statusName}`;
+  const defaultSubject = `[Chamado #${ticketIdShort}] ${ticket.title}`;
   const defaultBody = `
     <h2 style="color:#1e3a5f;margin:0 0 16px;">Atualização de Status do Chamado</h2>
     <p>Olá, <strong>{user_name}</strong>!</p>
@@ -316,7 +316,7 @@ const sendNewComment = async ({ ticket, user, technician, commentAuthor, comment
 
   if (isAuthorStaff) {
     // Staff/Tech commented -> notify the ticket owner (User)
-    const defaultSubject = `[Chamado #${ticketIdShort}] Nova mensagem da Equipe de TI`;
+    const defaultSubject = `[Chamado #${ticketIdShort}] ${ticket.title}`;
     const defaultBody = `
       <h2 style="color:#1e3a5f;margin:0 0 16px;">Nova Resposta da Equipe de TI</h2>
       <p>Olá, <strong>{user_name}</strong>!</p>
@@ -351,7 +351,7 @@ const sendNewComment = async ({ ticket, user, technician, commentAuthor, comment
     // Common user commented -> notify the assigned technician (if assigned)
     if (!technician || !technician.email) return;
 
-    const defaultSubject = `[Chamado #${ticketIdShort}] Nova mensagem do usuário ${user.name}`;
+    const defaultSubject = `[Chamado #${ticketIdShort}] ${ticket.title}`;
     const defaultBody = `
       <h2 style="color:#1e3a5f;margin:0 0 16px;">Nova Resposta do Usuário</h2>
       <p>Olá, <strong>{tech_name}</strong>!</p>

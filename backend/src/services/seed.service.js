@@ -83,7 +83,16 @@ const runAutoSeed = async () => {
         is_active: true,
       },
     });
-    console.log(`[AUTO-SEED] Conta Usuário pronta: ${normalUser.email}`);
+    // 5. Sync Email Templates Subjects for Threading
+    await prisma.emailTemplate.updateMany({
+      where: {
+        key: { in: ['ticket_created_user', 'ticket_created_team', 'status_update', 'comment_tech_to_user', 'comment_user_to_tech'] },
+      },
+      data: {
+        subject: '[Chamado #{ticket_id}] {ticket_title}',
+      },
+    });
+    console.log('[AUTO-SEED] Modelos de e-mail sincronizados para assunto único em thread.');
   } catch (err) {
     console.error('[AUTO-SEED] Erro ao executar auto-seed:', err);
   }
