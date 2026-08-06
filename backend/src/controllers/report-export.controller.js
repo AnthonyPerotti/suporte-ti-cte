@@ -46,7 +46,7 @@ const exportPdf = async (req, res) => {
       const watermarkPath = path.join(__dirname, '..', 'assets', 'ufsm-watermark.png');
       if (fs.existsSync(watermarkPath)) {
         doc.save();
-        doc.opacity(0.06);
+        doc.opacity(0.16);
         doc.image(watermarkPath, 110, 230, { width: 375 });
         doc.restore();
       }
@@ -64,16 +64,16 @@ const exportPdf = async (req, res) => {
     const cteLogoPath = path.join(__dirname, '..', 'assets', 'cte-logo-full.png');
 
     if (fs.existsSync(ufsmLogoPath)) {
-      doc.image(ufsmLogoPath, 40, 25, { height: 55 });
+      doc.image(ufsmLogoPath, 40, 24, { height: 58 });
     }
     if (fs.existsSync(cteLogoPath)) {
-      doc.image(cteLogoPath, 125, 28, { height: 48 });
+      doc.image(cteLogoPath, 445, 30, { width: 110 });
     }
 
-    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 215, 28);
-    doc.font('Helvetica-Bold').fontSize(9.5).fillColor('#2563eb').text('Coordenadoria de Tecnologia Educacional - CTE', 215, 46);
-    doc.font('Helvetica').fontSize(9).fillColor('#475569').text('Suporte TI | Relatório de Atendimentos', 215, 62);
-    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(`Período: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 215, 76);
+    doc.font('Helvetica-Bold').fontSize(12.5).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 110, 28);
+    doc.font('Helvetica-Bold').fontSize(9).fillColor('#2563eb').text('Coordenadoria de Tecnologia Educacional - CTE', 110, 46);
+    doc.font('Helvetica').fontSize(8.5).fillColor('#475569').text('Suporte TI | Relatório de Atendimentos', 110, 60);
+    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(`Período: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 110, 74);
 
     doc.moveTo(40, 95).lineTo(555, 95).strokeColor('#cbd5e1').lineWidth(1).stroke();
 
