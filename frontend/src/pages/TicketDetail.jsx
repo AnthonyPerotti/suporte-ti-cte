@@ -108,7 +108,7 @@ const TicketDetail = () => {
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('content', comment || '');
+      formData.append('content', comment.trim() || 'Anexo enviado');
       formData.append('is_internal', isInternal);
       Array.from(attachments || []).forEach(file => {
         formData.append('attachments', file);
@@ -374,57 +374,52 @@ const TicketDetail = () => {
                             <strong>{c.author?.name || 'Sistema'}</strong> — {formatDate(c.created_at)}
                             {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
                           </div>
-                          {c.content ? (
-                            typeof c.content === 'string' && c.content.includes('<') ? (
-                              <div
-                                className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
-                                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content) }}
-                              />
+                          <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
+                            {typeof c.content === 'string' && c.content.includes('<') ? (
+                              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content) }} />
                             ) : (
-                              <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
-                                {c.content}
+                              c.content || (c.attachments?.length > 0 ? 'Anexo enviado' : '—')
+                            )}
+                            {c.attachments?.length > 0 && (
+                              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                                {c.attachments.map(a => {
+                                  const url = getUploadUrl(a.path);
+                                  const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
+                                  return (
+                                    <a
+                                      key={a.id}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 8,
+                                        padding: isImage ? 0 : '8px 14px',
+                                        background: 'var(--color-bg)',
+                                        border: '1px solid var(--color-border)',
+                                        borderRadius: 8,
+                                        textDecoration: 'none',
+                                        color: 'var(--color-primary)',
+                                        fontWeight: 500,
+                                        fontSize: '0.85rem',
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      {isImage ? (
+                                        <img src={url} alt={a.filename || 'anexo'} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                                      ) : (
+                                        <>
+                                          <span style={{ fontSize: '1.1rem' }}>📎</span>
+                                          <span>{a.filename || 'anexo'}</span>
+                                        </>
+                                      )}
+                                    </a>
+                                  );
+                                })}
                               </div>
-                            )
-                          ) : null}
-                          {c.attachments?.length > 0 && (
-                            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                              {c.attachments.map(a => {
-                                const url = getUploadUrl(a.path);
-                                const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
-                                return (
-                                  <a
-                                    key={a.id}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: 8,
-                                      padding: isImage ? 0 : '8px 14px',
-                                      background: 'var(--color-surface-2)',
-                                      border: '1px solid var(--color-border)',
-                                      borderRadius: 8,
-                                      textDecoration: 'none',
-                                      color: 'var(--color-primary)',
-                                      fontWeight: 500,
-                                      fontSize: '0.85rem',
-                                      overflow: 'hidden',
-                                    }}
-                                  >
-                                    {isImage ? (
-                                      <img src={url} alt={a.filename || 'anexo'} style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
-                                    ) : (
-                                      <>
-                                        <span style={{ fontSize: '1.1rem' }}>📎</span>
-                                        <span>{a.filename || 'anexo'}</span>
-                                      </>
-                                    )}
-                                  </a>
-                                );
-                              })}
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

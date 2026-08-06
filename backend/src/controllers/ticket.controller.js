@@ -86,7 +86,10 @@ const getTicket = async (req, res) => {
       },
       comments: {
         orderBy: { created_at: 'asc' },
-        include: { author: { select: { id: true, name: true, role: true, avatar_url: true } } },
+        include: {
+          author: { select: { id: true, name: true, role: true, avatar_url: true } },
+          attachments: true,
+        },
       },
     },
   });
