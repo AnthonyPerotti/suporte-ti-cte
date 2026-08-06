@@ -275,10 +275,16 @@ const TicketDetail = () => {
               </div>
 
               <div className="divider" />
-              <div
-                style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)' }}
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description || '') }}
-              />
+              {typeof ticket.description === 'string' && ticket.description.includes('<') ? (
+                <div
+                  style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)' }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description) }}
+                />
+              ) : (
+                <div style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)', whiteSpace: 'pre-wrap' }}>
+                  {ticket.description || '—'}
+                </div>
+              )}
 
               {ticket.attachments?.length > 0 && (
                 <div style={{ marginTop: 16 }}>
@@ -355,10 +361,16 @@ const TicketDetail = () => {
                             <strong>{c.author?.name || 'Sistema'}</strong> — {formatDate(c.created_at)}
                             {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
                           </div>
-                          <div
-                            className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content || '') }}
-                          />
+                          {typeof c.content === 'string' && c.content.includes('<') ? (
+                            <div
+                              className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content) }}
+                            />
+                          ) : (
+                            <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
+                              {c.content || '—'}
+                            </div>
+                          )}
                           {c.attachments?.length > 0 && (
                             <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                               {c.attachments.map(a => {
@@ -409,10 +421,13 @@ const TicketDetail = () => {
                     )}
 
                     <div className="form-group">
-                      <RichTextEditor
+                      <textarea
+                        className="form-textarea"
+                        rows={4}
                         value={comment}
-                        onChange={setComment}
+                        onChange={e => setComment(e.target.value)}
                         placeholder={isInternal ? 'Nota interna (visível apenas para a equipe de TI)...' : 'Digite sua resposta...'}
+                        required
                       />
                     </div>
 

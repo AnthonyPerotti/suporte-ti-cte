@@ -184,10 +184,13 @@ const NewTicket = () => {
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-warning)', marginBottom: 8, padding: '8px 12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 6, border: '1px solid rgba(245, 158, 11, 0.2)' }}>
                   <strong>Aviso:</strong> Por favor, informe em qual <strong>Sala e/ou Prédio</strong> o equipamento se encontra ou onde o técnico deve ir para lhe atender.
                 </div>
-                <RichTextEditor
+                <textarea
+                  className="form-textarea"
+                  rows={5}
                   value={description}
-                  onChange={setDescription}
+                  onChange={e => setDescription(e.target.value)}
                   placeholder="Explique o problema detalhadamente e informe sua SALA/LOCALIZAÇÃO."
+                  required
                 />
               </div>
             </div>
