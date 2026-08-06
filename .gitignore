@@ -30,3 +30,5 @@ backend/uploads/
 # Arquivos do Sistema Operacional
 .DS_Store
 Thumbs.db
+
+.agents/
