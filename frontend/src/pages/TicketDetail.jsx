@@ -227,9 +227,9 @@ const TicketDetail = () => {
 
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
   
-  const canEdit = !isStaff || ['admin', 'root'].includes(user?.role) || ticket.assignee_id === user.id;
-  const isUnassignedTech = isStaff && user.role === 'technician' && !ticket.assignee_id;
-  const isAssignedToOther = isStaff && user.role === 'technician' && ticket.assignee_id && ticket.assignee_id !== user.id;
+  const canEdit = !isStaff || ['admin', 'root'].includes(user?.role) || (user?.id && ticket.assignee_id === user.id);
+  const isUnassignedTech = isStaff && user?.role === 'technician' && !ticket.assignee_id;
+  const isAssignedToOther = isStaff && user?.role === 'technician' && Boolean(ticket.assignee_id && ticket.assignee_id !== user?.id);
 
   let nextStatuses = (isStaff && canEdit) ? (STATUS_TRANSITIONS[ticket.status] || []) : [];
   if (ticket.status === 'closed' && !['admin', 'root'].includes(user?.role)) {
@@ -530,11 +530,11 @@ const TicketDetail = () => {
                   </select>
                 ) : (
                   !ticket.assignee_id ? (
-                    <button className="btn btn-primary btn-sm btn-full" onClick={() => assignTech(user.id)}>Aceitar Chamado</button>
-                  ) : ticket.assignee_id === user.id ? (
+                    <button className="btn btn-primary btn-sm btn-full" onClick={() => assignTech(user?.id)}>Aceitar Chamado</button>
+                  ) : user?.id && ticket.assignee_id === user.id ? (
                     <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
-                      <option value={user.id}>{user.name}</option>
-                      {Array.isArray(technicians) && technicians.filter(t => t.id !== user.id).map(t => (
+                      <option value={user?.id}>{user?.name}</option>
+                      {Array.isArray(technicians) && technicians.filter(t => t.id !== user?.id).map(t => (
                         <option key={t.id} value={t.id} disabled={t.is_absent}>
                           Tramitar para: {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + formatDate(t.absence_until).substring(0, 10) : ''})` : ''}
                         </option>
@@ -547,7 +547,7 @@ const TicketDetail = () => {
 
             {/* Status actions */}
             {isStaff && (
-              ticket.status === 'closed' && user.role !== 'admin' ? (
+              ticket.status === 'closed' && !['admin', 'root'].includes(user?.role) ? (
                 <div className="card" style={{ marginBottom: 16 }}>
                   <div className="card-title">Alterar Status</div>
                   <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: 0 }}>
