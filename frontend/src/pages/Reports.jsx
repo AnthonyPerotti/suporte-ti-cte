@@ -92,29 +92,25 @@ const Reports = () => {
   const PRIORITY_COLORS = { urgent: 'var(--color-urgent)', high: 'var(--color-high)', normal: 'var(--color-info)', low: 'var(--color-low)' };
   const PRIORITY_LABELS = { urgent: 'Urgente', high: 'Alta', normal: 'Normal', low: 'Baixa' };
 
-  const handleExportFormat = (format) => {
-    const params = new URLSearchParams({ from, to, ...(technicianId && { technician_id: technicianId }) });
-    const apiBase = import.meta.env.VITE_API_URL || '/api';
-    const endpoint = format === 'csv' ? '/reports/export' : `/reports/export/${format}`;
-    const url = `${apiBase}${endpoint}?${params.toString()}`;
-    const token = localStorage.getItem('token');
-    
-    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
-        if (!res.ok) throw new Error();
-        return res.blob();
-      })
-      .then(blob => {
-        const downloadUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = downloadUrl;
-        const ext = format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv';
-        a.download = `relatorio-chamados-${from}-ate-${to}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(downloadUrl);
-      })
-      .catch(() => toast.error(`Erro ao exportar relatório em ${format.toUpperCase()}`));
+  const handleExportFormat = async (format) => {
+    try {
+      const params = { from, to, ...(technicianId && { technician_id: technicianId }) };
+      const endpoint = format === 'csv' ? '/reports/export' : `/reports/export/${format}`;
+      const res = await api.get(endpoint, { params, responseType: 'blob' });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      const ext = format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv';
+      a.download = `relatorio-chamados-${from}-ate-${to}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success(`Relatório em ${format.toUpperCase()} exportado com sucesso!`);
+    } catch {
+      toast.error(`Erro ao exportar relatório em ${format.toUpperCase()}`);
+    }
   };
 
   return (
