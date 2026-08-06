@@ -380,25 +380,55 @@ const AdminAuditLogs = () => {
               <div className="card-title" style={{ marginBottom: 12 }}>
                 Detalhes do Registro de Auditoria
               </div>
-              <pre
-                style={{
-                  background: 'var(--color-bg)',
-                  padding: 16,
-                  borderRadius: 6,
-                  overflowX: 'auto',
-                  fontSize: '0.85rem',
-                  maxHeight: 350,
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
                 {(() => {
                   try {
-                    return JSON.stringify(JSON.parse(selectedDetails), null, 2);
+                    const parsed = typeof selectedDetails === 'string' ? JSON.parse(selectedDetails) : selectedDetails;
+                    if (parsed.diffs && Array.isArray(parsed.diffs) && parsed.diffs.length > 0) {
+                      return (
+                        <div>
+                          <div style={{ marginBottom: 12, fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                            <strong>Comparativo de Alterações:</strong>
+                          </div>
+                          <table className="data-table" style={{ fontSize: '0.82rem', marginBottom: 16 }}>
+                            <thead>
+                              <tr>
+                                <th>Campo</th>
+                                <th>Valor Anterior (De)</th>
+                                <th>Novo Valor (Para)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {parsed.diffs.map((d, i) => (
+                                <tr key={i}>
+                                  <td style={{ fontWeight: 600 }}>{d.field}</td>
+                                  <td style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-danger)', fontWeight: 600 }}>{String(d.old_value || '—')}</td>
+                                  <td style={{ background: 'rgba(34, 197, 94, 0.1)', color: 'var(--color-success)', fontWeight: 600 }}>{String(d.new_value || '—')}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                          <details style={{ marginTop: 8 }}>
+                            <summary style={{ cursor: 'pointer', fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>Ver JSON completo</summary>
+                            <pre style={{ background: 'var(--color-bg)', padding: 12, borderRadius: 6, fontSize: '0.78rem', marginTop: 8, overflowX: 'auto' }}>
+                              {JSON.stringify(parsed, null, 2)}
+                            </pre>
+                          </details>
+                        </div>
+                      );
+                    }
+                    return (
+                      <pre style={{ background: 'var(--color-bg)', padding: 16, borderRadius: 6, overflowX: 'auto', fontSize: '0.85rem', maxHeight: 350, whiteSpace: 'pre-wrap' }}>
+                        {JSON.stringify(parsed, null, 2)}
+                      </pre>
+                    );
                   } catch {
-                    return selectedDetails;
+                    return (
+                      <pre style={{ background: 'var(--color-bg)', padding: 16, borderRadius: 6, overflowX: 'auto', fontSize: '0.85rem', maxHeight: 350, whiteSpace: 'pre-wrap' }}>
+                        {selectedDetails}
+                      </pre>
+                    );
                   }
                 })()}
-              </pre>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
                 <button className="btn btn-secondary" onClick={() => setSelectedDetails(null)}>
                   Fechar

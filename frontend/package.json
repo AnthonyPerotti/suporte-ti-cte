@@ -14,11 +14,17 @@
     "vite": "^5.2.0"
   },
   "dependencies": {
+    "@tiptap/extension-code-block": "^3.29.2",
+    "@tiptap/extension-link": "^3.29.2",
+    "@tiptap/react": "^3.29.2",
+    "@tiptap/starter-kit": "^3.29.2",
     "axios": "^1.18.1",
+    "dompurify": "^3.4.13",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.1",
-    "recharts": "^3.10.0"
+    "recharts": "^3.10.0",
+    "socket.io-client": "^4.8.3"
   }
 }

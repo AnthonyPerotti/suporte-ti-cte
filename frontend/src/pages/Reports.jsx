@@ -92,6 +92,31 @@ const Reports = () => {
   const PRIORITY_COLORS = { urgent: 'var(--color-urgent)', high: 'var(--color-high)', normal: 'var(--color-info)', low: 'var(--color-low)' };
   const PRIORITY_LABELS = { urgent: 'Urgente', high: 'Alta', normal: 'Normal', low: 'Baixa' };
 
+  const handleExportFormat = (format) => {
+    const params = new URLSearchParams({ from, to, ...(technicianId && { technician_id: technicianId }) });
+    const apiBase = import.meta.env.VITE_API_URL || '/api';
+    const endpoint = format === 'csv' ? '/reports/export' : `/reports/export/${format}`;
+    const url = `${apiBase}${endpoint}?${params.toString()}`;
+    const token = localStorage.getItem('token');
+    
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.blob();
+      })
+      .then(blob => {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        const ext = format === 'pdf' ? 'pdf' : format === 'excel' ? 'xlsx' : 'csv';
+        a.download = `relatorio-chamados-${from}-ate-${to}.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(downloadUrl);
+      })
+      .catch(() => toast.error(`Erro ao exportar relatório em ${format.toUpperCase()}`));
+  };
+
   return (
     <div className="app-layout">
       <Sidebar />
@@ -101,8 +126,10 @@ const Reports = () => {
             <h1 className="page-title">Relatórios</h1>
             <p className="page-subtitle">Métricas e estatísticas de atendimento.</p>
           </div>
-          <div className="flex gap-8">
-            <button className="btn btn-secondary" onClick={handleExport}>📥 Exportar CSV</button>
+          <div className="flex gap-8 flex-wrap">
+            <button className="btn btn-secondary" onClick={() => handleExportFormat('pdf')}>📄 Exportar PDF</button>
+            <button className="btn btn-secondary" onClick={() => handleExportFormat('excel')}>📊 Exportar Excel</button>
+            <button className="btn btn-secondary" onClick={() => handleExportFormat('csv')}>📥 Exportar CSV</button>
             {user?.role === 'admin' && (
               <button className="btn btn-danger" onClick={() => setShowPurgeModal(true)}>🗑️ Purgar Dados</button>
             )}

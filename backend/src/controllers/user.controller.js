@@ -6,7 +6,41 @@ const prisma = new PrismaClient();
 
 const ALLOWED_DOMAINS = ['ufsm.br', 'cead.ufsm.br'];
 
+const checkAbsenceExpirations = async () => {
+  try {
+    await prisma.user.updateMany({
+      where: {
+        is_absent: true,
+        absence_until: { lte: new Date() },
+      },
+      data: {
+        is_absent: false,
+        absence_reason: null,
+        absence_until: null,
+      },
+    });
+  } catch (e) {
+    console.error('Erro ao verificar expiração de ausências:', e);
+  }
+};
+
+const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  department: true,
+  avatar_url: true,
+  is_active: true,
+  is_absent: true,
+  absence_reason: true,
+  absence_until: true,
+  created_at: true,
+  force_password_change: true,
+};
+
 const listUsers = async (req, res) => {
+  await checkAbsenceExpirations();
   const { role, search, page = 1, limit = 20 } = req.query;
   const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -23,7 +57,7 @@ const listUsers = async (req, res) => {
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       where,
-      select: { id: true, name: true, email: true, role: true, department: true, avatar_url: true, is_active: true, created_at: true, force_password_change: true },
+      select: userSelect,
       orderBy: { name: 'asc' },
       skip,
       take: parseInt(limit),
@@ -35,10 +69,12 @@ const listUsers = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
+  await checkAbsenceExpirations();
   const user = await prisma.user.findUnique({
     where: { id: req.params.id },
-    select: { id: true, name: true, email: true, role: true, department: true, avatar_url: true, is_active: true, created_at: true, force_password_change: true },
+    select: userSelect,
   });
+
   if (!user) return res.status(404).json({ error: 'User not found' });
   return res.json(user);
 };
@@ -163,17 +199,24 @@ const updateUser = async (req, res) => {
     if (is_active !== undefined) data.is_active = is_active;
   }
 
+  const diffs = [];
+  if (name !== undefined && name !== currentUser.name) diffs.push({ field: 'Nome', old_value: currentUser.name, new_value: name });
+  if (email !== undefined && email !== currentUser.email) diffs.push({ field: 'E-mail', old_value: currentUser.email, new_value: email });
+  if (role !== undefined && role !== currentUser.role) diffs.push({ field: 'Função', old_value: currentUser.role, new_value: role });
+  if (department !== undefined && department !== currentUser.department) diffs.push({ field: 'Departamento', old_value: currentUser.department || 'Nenhum', new_value: department });
+  if (is_active !== undefined && is_active !== currentUser.is_active) diffs.push({ field: 'Ativo', old_value: currentUser.is_active ? 'Sim' : 'Não', new_value: is_active ? 'Sim' : 'Não' });
+
   const user = await prisma.user.update({
     where: { id: req.params.id },
     data,
-    select: { id: true, name: true, email: true, role: true, department: true, avatar_url: true, is_active: true, created_at: true },
+    select: userSelect,
   });
 
   logAudit({
     req,
     action: 'USER_UPDATE',
     resource: 'users',
-    details: { target_user_id: user.id, name: user.name, role: user.role, is_active: user.is_active },
+    details: { target_user_id: user.id, name: user.name, diffs },
   });
 
   return res.json(user);
@@ -213,12 +256,43 @@ const resetPassword = async (req, res) => {
 };
 
 const getTechnicians = async (req, res) => {
+  await checkAbsenceExpirations();
   const techs = await prisma.user.findMany({
     where: { role: { in: ['technician', 'admin', 'root'] }, is_active: true },
-    select: { id: true, name: true, email: true, role: true, avatar_url: true },
+    select: { id: true, name: true, email: true, role: true, avatar_url: true, is_absent: true, absence_reason: true, absence_until: true },
     orderBy: { name: 'asc' },
   });
   return res.json(techs);
 };
 
-module.exports = { listUsers, getUser, createUser, updateUser, resetPassword, getTechnicians };
+const updateAbsenceStatus = async (req, res) => {
+  const { is_absent, absence_reason, absence_until } = req.body;
+  const userId = req.params.id || req.user.id;
+
+  if (req.user.id !== userId && !['admin', 'root'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+
+  const untilDate = absence_until ? new Date(absence_until) : null;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      is_absent: Boolean(is_absent),
+      absence_reason: is_absent ? (absence_reason || 'Em Férias / Ausente') : null,
+      absence_until: is_absent ? untilDate : null,
+    },
+    select: userSelect,
+  });
+
+  logAudit({
+    req,
+    action: 'USER_UPDATE_ABSENCE',
+    resource: 'users',
+    details: { target_user_id: userId, is_absent, absence_until },
+  });
+
+  return res.json(updatedUser);
+};
+
+module.exports = { listUsers, getUser, createUser, updateUser, resetPassword, getTechnicians, updateAbsenceStatus };

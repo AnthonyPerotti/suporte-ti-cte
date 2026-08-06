@@ -5,6 +5,8 @@ import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 
+import RichTextEditor from '../components/RichTextEditor';
+
 const NewTicket = () => {
   const { user } = useAuth();
   const isStaff = ['admin', 'technician', 'root'].includes(user?.role);
@@ -132,7 +134,9 @@ const NewTicket = () => {
                     <select id="assigneeMain" className="form-select" value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
                       <option value="">Deixar em aberto (Sem atribuição)</option>
                       {technicians.map(t => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
+                        <option key={t.id} value={t.id} disabled={t.is_absent}>
+                          {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + new Date(t.absence_until).toLocaleDateString('pt-BR') : ''})` : ''}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -176,18 +180,14 @@ const NewTicket = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="description">Descrição completa *</label>
+                <label className="form-label">Descrição completa *</label>
                 <div style={{ fontSize: '0.8rem', color: 'var(--color-warning)', marginBottom: 8, padding: '8px 12px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: 6, border: '1px solid rgba(245, 158, 11, 0.2)' }}>
                   <strong>Aviso:</strong> Por favor, informe em qual <strong>Sala e/ou Prédio</strong> o equipamento se encontra ou onde o técnico deve ir para lhe atender.
                 </div>
-                <textarea
-                  id="description"
-                  className="form-textarea"
-                  placeholder="Explique o problema detalhadamente e informe sua SALA/LOCALIZAÇÃO."
+                <RichTextEditor
                   value={description}
-                  onChange={e => setDescription(e.target.value)}
-                  style={{ minHeight: 160 }}
-                  required
+                  onChange={setDescription}
+                  placeholder="Explique o problema detalhadamente e informe sua SALA/LOCALIZAÇÃO."
                 />
               </div>
             </div>

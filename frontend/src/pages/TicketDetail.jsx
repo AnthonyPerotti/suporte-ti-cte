@@ -5,7 +5,8 @@ import { StatusBadge, PriorityBadge, SlaBadge } from '../components/Badges';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
-import { getUploadUrl } from '../utils/url';
+import DOMPurify from 'dompurify';
+import RichTextEditor from '../components/RichTextEditor';
 
 const EVENT_LABELS = {
   created:         'Chamado aberto',
@@ -247,9 +248,10 @@ const TicketDetail = () => {
               </div>
 
               <div className="divider" />
-              <div style={{ fontSize: '0.9rem', lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--color-text)' }}>
-                {ticket.description}
-              </div>
+              <div 
+                style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)' }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description) }}
+              />
 
               {ticket.attachments?.length > 0 && (
                 <div style={{ marginTop: 16 }}>
@@ -325,9 +327,11 @@ const TicketDetail = () => {
                             <strong>{c.author.name}</strong> — {formatDate(c.created_at)}
                             {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
                           </div>
-                          <div className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
-                            {c.content}
-                            {c.attachments?.length > 0 && (
+                          <div 
+                            className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content) }}
+                          />
+                          {c.attachments?.length > 0 && (
                               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {c.attachments.map(a => {
                                   const url = getUploadUrl(a.path);
@@ -340,7 +344,6 @@ const TicketDetail = () => {
                                 })}
                               </div>
                             )}
-                          </div>
                         </div>
                       </div>
                     );
@@ -378,12 +381,10 @@ const TicketDetail = () => {
                     )}
 
                   <div className="form-group">
-                    <textarea
-                      className="form-textarea"
-                      placeholder={isInternal ? 'Nota interna (visível apenas para a equipe de TI)...' : 'Digite sua resposta...'}
+                    <RichTextEditor
                       value={comment}
-                      onChange={e => setComment(e.target.value)}
-                      style={{ minHeight: 100, borderColor: isInternal ? 'var(--color-warning)' : undefined }}
+                      onChange={setComment}
+                      placeholder={isInternal ? 'Nota interna (visível apenas para a equipe de TI)...' : 'Digite sua resposta...'}
                     />
                   </div>
 
@@ -494,7 +495,11 @@ const TicketDetail = () => {
                 {['admin', 'root'].includes(user?.role) ? (
                   <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                     <option value="">Sem atribuição</option>
-                    {technicians.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    {technicians.map(t => (
+                      <option key={t.id} value={t.id} disabled={t.is_absent}>
+                        {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + new Date(t.absence_until).toLocaleDateString('pt-BR') : ''})` : ''}
+                      </option>
+                    ))}
                   </select>
                 ) : (
                   !ticket.assignee_id ? (
@@ -502,7 +507,11 @@ const TicketDetail = () => {
                   ) : ticket.assignee_id === user.id ? (
                     <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                       <option value={user.id}>{user.name}</option>
-                      {technicians.filter(t => t.id !== user.id).map(t => <option key={t.id} value={t.id}>Tramitar para: {t.name}</option>)}
+                      {technicians.filter(t => t.id !== user.id).map(t => (
+                        <option key={t.id} value={t.id} disabled={t.is_absent}>
+                          Tramitar para: {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + new Date(t.absence_until).toLocaleDateString('pt-BR') : ''})` : ''}
+                        </option>
+                      ))}
                     </select>
                   ) : null
                 )}

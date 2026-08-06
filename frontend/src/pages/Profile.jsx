@@ -21,15 +21,42 @@ const Profile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const isStaff = ['admin', 'technician', 'root'].includes(user?.role);
+  const [isAbsent, setIsAbsent] = useState(false);
+  const [absenceReason, setAbsenceReason] = useState('');
+  const [absenceUntil, setAbsenceUntil] = useState('');
+  const [updatingAbsence, setUpdatingAbsence] = useState(false);
+
   useEffect(() => {
     if (user) {
       setName(user.name || '');
       setEmail(user.email || '');
+      setIsAbsent(Boolean(user.is_absent));
+      setAbsenceReason(user.absence_reason || '');
+      setAbsenceUntil(user.absence_until ? user.absence_until.split('T')[0] : '');
       if (user.avatar_url) {
         setAvatarPreview(getUploadUrl(user.avatar_url));
       }
     }
   }, [user]);
+
+  const handleAbsenceSubmit = async (e) => {
+    e.preventDefault();
+    setUpdatingAbsence(true);
+    try {
+      const { data } = await api.patch(`/users/${user.id}/absence`, {
+        is_absent: isAbsent,
+        absence_reason: absenceReason,
+        absence_until: absenceUntil || null,
+      });
+      setUser(data);
+      toast.success('Status de férias/ausência atualizado com sucesso');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Erro ao atualizar ausência');
+    } finally {
+      setUpdatingAbsence(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -171,6 +198,66 @@ const Profile = () => {
               </div>
             </form>
           </div>
+
+          {isStaff && (
+            <div className="card" style={{ marginTop: 24, border: '1px solid var(--color-warning)', background: 'var(--color-surface)' }}>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-warning)' }}>
+                🏖️ Status de Férias / Ausência
+              </div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
+                Enquanto ausente, o sistema impede a atribuição ou tramitação de chamados para você.
+              </p>
+
+              <form onSubmit={handleAbsenceSubmit}>
+                <div className="form-group flex items-center gap-12" style={{ marginBottom: 16 }}>
+                  <input
+                    type="checkbox"
+                    id="isAbsentCheck"
+                    checked={isAbsent}
+                    onChange={e => setIsAbsent(e.target.checked)}
+                    style={{ width: 18, height: 18, cursor: 'pointer' }}
+                  />
+                  <label htmlFor="isAbsentCheck" style={{ fontWeight: 600, cursor: 'pointer' }}>
+                    {isAbsent ? 'Estou Ausente / Em Férias 🏖️' : 'Estou Disponível (Ativo) ✅'}
+                  </label>
+                </div>
+
+                {isAbsent && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" htmlFor="absReason">Motivo da Ausência</label>
+                      <input
+                        id="absReason"
+                        type="text"
+                        className="form-input"
+                        placeholder="Ex: Férias Regulamentares"
+                        value={absenceReason}
+                        onChange={e => setAbsenceReason(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" htmlFor="absUntil">Data de Término (Desativação Automática)</label>
+                      <input
+                        id="absUntil"
+                        type="date"
+                        className="form-input"
+                        value={absenceUntil}
+                        onChange={e => setAbsenceUntil(e.target.value)}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block', marginTop: 4 }}>
+                        Opcional: o sistema reativará você automaticamente após esta data.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-secondary btn-sm" disabled={updatingAbsence}>
+                  {updatingAbsence ? 'Salvando...' : 'Salvar Status de Ausência'}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
       </main>
     </div>

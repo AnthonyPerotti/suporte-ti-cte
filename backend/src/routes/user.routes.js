@@ -10,6 +10,7 @@ router.get('/', authorize('admin', 'technician', 'root'), ctrl.listUsers);
 router.get('/:id', ctrl.getUser);
 router.post('/', authorize('admin', 'root'), ctrl.createUser);
 router.put('/:id', upload.single('avatar'), ctrl.updateUser);
+router.patch('/:id/absence', ctrl.updateAbsenceStatus);
 router.post('/:id/reset-password', authorize('admin', 'root'), ctrl.resetPassword);
 
 module.exports = router;

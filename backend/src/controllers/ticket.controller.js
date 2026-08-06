@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const emailService = require('../services/email.service');
 const { logAudit } = require('../services/audit.service');
+const { notifyNewTicket, notifyTicketUpdated } = require('../services/socket.service');
 
 const prisma = new PrismaClient();
 
@@ -104,6 +105,21 @@ const getTicket = async (req, res) => {
   return res.json(withSla);
 };
 
+const checkAndGetAbsence = async (userId) => {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.is_absent) return { isAbsent: false, user };
+
+  if (user.absence_until && new Date() > new Date(user.absence_until)) {
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { is_absent: false, absence_reason: null, absence_until: null },
+    });
+    return { isAbsent: false, user: updated };
+  }
+
+  return { isAbsent: true, user };
+};
+
 const createTicket = async (req, res) => {
   const { title, description, category_id, priority = 'normal', user_id, assignee_id } = req.body;
 
@@ -122,7 +138,13 @@ const createTicket = async (req, res) => {
   let targetAssigneeId = null;
   let initialStatus = 'open';
   if (isStaff && assignee_id) {
-    const targetTech = await prisma.user.findUnique({ where: { id: assignee_id } });
+    const { isAbsent, user: targetTech } = await checkAndGetAbsence(assignee_id);
+    if (isAbsent) {
+      const untilStr = targetTech.absence_until ? ` até ${new Date(targetTech.absence_until).toLocaleDateString('pt-BR')}` : '';
+      return res.status(400).json({
+        error: `O técnico ${targetTech.name} está ausente/em férias${untilStr} (${targetTech.absence_reason || 'Ausente'}) e não pode receber chamados.`
+      });
+    }
     if (targetTech) {
       targetAssigneeId = targetTech.id;
       initialStatus = 'in_progress';
@@ -238,6 +260,8 @@ const createTicket = async (req, res) => {
     details: { ticket_id: ticket.id, title: ticket.title, on_behalf_of: targetUserId },
   });
 
+  notifyNewTicket(ticket);
+
   return res.status(201).json(ticket);
 };
 
@@ -253,6 +277,15 @@ const updateTicket = async (req, res) => {
   const events = [];
 
   if (assignee_id !== undefined && assignee_id !== current.assignee_id) {
+    if (assignee_id) {
+      const { isAbsent, user: targetTech } = await checkAndGetAbsence(assignee_id);
+      if (isAbsent) {
+        const untilStr = targetTech.absence_until ? ` até ${new Date(targetTech.absence_until).toLocaleDateString('pt-BR')}` : '';
+        return res.status(400).json({
+          error: `O técnico ${targetTech.name} está ausente/em férias${untilStr} (${targetTech.absence_reason || 'Ausente'}) e não pode receber chamados.`
+        });
+      }
+    }
     data.assignee_id = assignee_id;
     events.push({ type: 'assignment', metadata: { assignee_id } });
   }
@@ -333,6 +366,8 @@ const updateTicket = async (req, res) => {
       newStatus: status,
     }).catch(console.error);
   }
+
+  notifyTicketUpdated(ticket);
 
   return res.json(ticket);
 };

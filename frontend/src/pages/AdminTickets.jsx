@@ -5,6 +5,7 @@ import { StatusBadge, PriorityBadge, SlaBadge } from '../components/Badges';
 import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
+import { getSocket } from '../services/socket';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Todos' },
@@ -61,6 +62,20 @@ const AdminTickets = () => {
   useEffect(() => {
     api.get('/users/technicians').then(({ data }) => setTechnicians(data)).catch(() => {});
     api.get('/users', { params: { limit: 100 } }).then(({ data }) => setRequesters(data.users || [])).catch(() => {});
+
+    const socket = getSocket();
+    socket.on('ticket:created', (newTicket) => {
+      toast.info(`🔔 Novo Chamado Recebido: #${newTicket.id.slice(0, 8).toUpperCase()} - ${newTicket.title}`);
+      fetchTickets();
+    });
+    socket.on('ticket:updated', () => {
+      fetchTickets();
+    });
+
+    return () => {
+      socket.off('ticket:created');
+      socket.off('ticket:updated');
+    };
   }, []);
 
   useEffect(() => { fetchTickets(); }, [page, status, search, assigneeId, requesterId, showArchived]);
