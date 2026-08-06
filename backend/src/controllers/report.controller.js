@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const { getSlaStatus } = require('../services/sla.service');
+const { getSlaStatus, getBusinessHoursBetween } = require('../services/sla.service');
 
 const getReports = async (req, res) => {
   const { from, to, technician_id, category_id } = req.query;
@@ -28,10 +28,10 @@ const getReports = async (req, res) => {
     }),
   ]);
 
-  // Average resolution time in hours
+  // Average resolution time in business hours (Monday to Friday, 08:00 to 17:00)
   const resolutionTimes = closedTickets
     .filter(t => t.closed_at)
-    .map(t => (new Date(t.closed_at) - new Date(t.created_at)) / (1000 * 60 * 60));
+    .map(t => getBusinessHoursBetween(t.created_at, t.closed_at));
   const avgResolutionHours = resolutionTimes.length > 0
     ? resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length
     : null;

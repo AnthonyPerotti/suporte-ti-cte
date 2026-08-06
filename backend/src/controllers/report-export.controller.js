@@ -3,7 +3,7 @@ const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-const { getSlaStatus } = require('../services/sla.service');
+const { getSlaStatus, getBusinessHoursBetween } = require('../services/sla.service');
 
 const prisma = new PrismaClient();
 
@@ -201,13 +201,20 @@ const exportExcel = async (req, res) => {
     sheet2.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '2563EB' } };
 
     const total = tickets.length;
-    const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+    const closedList = tickets.filter(t => (t.status === 'resolved' || t.status === 'closed') && t.closed_at);
+    const resolved = closedList.length;
     const open = tickets.filter(t => t.status === 'open' || t.status === 'in_progress').length;
+
+    const resTimes = closedList.map(t => getBusinessHoursBetween(t.created_at, t.closed_at));
+    const avgBusinessHours = resTimes.length > 0
+      ? (resTimes.reduce((a, b) => a + b, 0) / resTimes.length).toFixed(1) + ' horas úteis'
+      : 'N/A';
 
     sheet2.addRow({ metric: 'Período', value: `${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}` });
     sheet2.addRow({ metric: 'Total de Chamados Registrados', value: total });
     sheet2.addRow({ metric: 'Chamados Atendidos/Encerrados', value: resolved });
     sheet2.addRow({ metric: 'Chamados em Andamento', value: open });
+    sheet2.addRow({ metric: 'Tempo Médio de Resolução', value: avgBusinessHours });
 
     res.setHeader(
       'Content-Type',
