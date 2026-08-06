@@ -101,23 +101,37 @@ const exportPdf = async (req, res) => {
 
     y += 24;
 
+    const STATUS_LABELS_PDF = { open: 'ABERTO', in_progress: 'EM ATEND.', waiting_user: 'AGUARDANDO', resolved: 'RESOLVIDO', closed: 'ENCERRADO' };
+
     doc.font('Helvetica').fontSize(8);
-    tickets.slice(0, 40).forEach((t, i) => {
-      if (y > 750) {
+    tickets.slice(0, 35).forEach((t, i) => {
+      if (y > 740) {
         doc.addPage();
         y = 40;
       }
 
-      const bg = i % 2 === 0 ? '#ffffff' : '#f1f5f9';
-      doc.rect(40, y, 515, 22).fill(bg);
+      const bg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+      const rowHeight = 28;
+      doc.rect(40, y, 515, rowHeight).fill(bg);
 
-      doc.fillColor('#334155').text(`#${t.id.slice(0, 8).toUpperCase()}`, 48, y + 6);
-      doc.fillColor('#0f172a').font('Helvetica-Bold').text(t.title.slice(0, 35), 105, y + 6);
-      doc.font('Helvetica').fillColor('#64748b').text(t.category ? t.category.name : 'Geral', 310, y + 6);
-      doc.fillColor('#2563eb').text(t.status.toUpperCase(), 415, y + 6);
-      doc.fillColor('#475569').text(new Date(t.created_at).toLocaleDateString('pt-BR'), 485, y + 6);
+      // ID
+      doc.fillColor('#334155').font('Helvetica-Bold').fontSize(8).text(`#${t.id.slice(0, 8).toUpperCase()}`, 48, y + 9);
 
-      y += 22;
+      // Title & Requester
+      doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(8).text(t.title.slice(0, 36), 105, y + 4);
+      doc.fillColor('#64748b').font('Helvetica').fontSize(7.2).text(`Por: ${t.user?.name || 'Solicitante N/A'}${t.user?.email ? ' (' + t.user.email + ')' : ''}`, 105, y + 15);
+
+      // Category
+      doc.font('Helvetica').fontSize(8).fillColor('#475569').text(t.category ? t.category.name : 'Geral', 310, y + 9);
+
+      // Status
+      const statusText = STATUS_LABELS_PDF[t.status] || t.status.toUpperCase();
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#2563eb').text(statusText, 415, y + 9);
+
+      // Abertura
+      doc.font('Helvetica').fontSize(8).fillColor('#475569').text(new Date(t.created_at).toLocaleDateString('pt-BR'), 485, y + 9);
+
+      y += rowHeight;
     });
 
     // Footer
