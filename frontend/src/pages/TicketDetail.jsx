@@ -314,17 +314,17 @@ const TicketDetail = () => {
                     return (
                       <div key={`com-${c.id}`} className="timeline-item">
                         <div className="timeline-dot" style={{ background: c.is_internal ? 'rgba(245,158,11,0.1)' : undefined, padding: 0, overflow: 'hidden' }}>
-                          <div className="avatar avatar-sm" style={{ background: c.author.role === 'user' ? '#6b7280' : 'var(--color-primary)', width: '100%', height: '100%' }}>
-                            {c.author.avatar_url ? (
+                          <div className="avatar avatar-sm" style={{ background: c.author?.role === 'user' ? '#6b7280' : 'var(--color-primary)', width: '100%', height: '100%' }}>
+                            {c.author?.avatar_url ? (
                               <img src={getUploadUrl(c.author.avatar_url)} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              getInitials(c.author.name)
+                              getInitials(c.author?.name || 'Sistema')
                             )}
                           </div>
                         </div>
                         <div className="timeline-body">
                           <div className="timeline-meta">
-                            <strong>{c.author.name}</strong> — {formatDate(c.created_at)}
+                            <strong>{c.author?.name || 'Sistema'}</strong> — {formatDate(c.created_at)}
                             {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
                           </div>
                           <div 

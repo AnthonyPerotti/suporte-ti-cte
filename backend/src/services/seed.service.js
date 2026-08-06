@@ -21,7 +21,7 @@ const runAutoSeed = async () => {
     const rootPassword = await bcrypt.hash('Root@123', 12);
     const rootUser = await prisma.user.upsert({
       where: { email: 'root@ufsm.br' },
-      update: { role: 'root', password_hash: rootPassword, is_active: true },
+      update: { role: 'root' },
       create: {
         name: 'Super Root',
         email: 'root@ufsm.br',
@@ -38,7 +38,7 @@ const runAutoSeed = async () => {
     const adminPassword = await bcrypt.hash('Admin@123', 12);
     const adminUser = await prisma.user.upsert({
       where: { email: 'admin@cead.ufsm.br' },
-      update: { password_hash: adminPassword, is_active: true },
+      update: {},
       create: {
         name: 'Administrador TI',
         email: 'admin@cead.ufsm.br',
@@ -55,7 +55,7 @@ const runAutoSeed = async () => {
     const techPassword = await bcrypt.hash('Temp@123', 12);
     const techUser = await prisma.user.upsert({
       where: { email: 'tecnico@cead.ufsm.br' },
-      update: { password_hash: techPassword, is_active: true },
+      update: {},
       create: {
         name: 'Técnico TI',
         email: 'tecnico@cead.ufsm.br',
@@ -72,7 +72,7 @@ const runAutoSeed = async () => {
     const userPassword = await bcrypt.hash('Temp@123', 12);
     const normalUser = await prisma.user.upsert({
       where: { email: 'usuario@cead.ufsm.br' },
-      update: { password_hash: userPassword, is_active: true },
+      update: {},
       create: {
         name: 'Usuário Teste',
         email: 'usuario@cead.ufsm.br',
