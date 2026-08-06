@@ -17,8 +17,23 @@ const EVENT_LABELS = {
   attachment_added:'Anexo adicionado',
 };
 
-const formatDate = (d) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+const formatDate = (d) => {
+  try { return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+  catch { return '—'; }
+};
+
+const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return '?';
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return '?';
+  return parts.slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+};
+
+const parseMetadata = (meta) => {
+  if (!meta) return {};
+  if (typeof meta === 'object') return meta;
+  try { return JSON.parse(meta); } catch { return {}; }
+};
 
 const STATUS_TRANSITIONS = {
   open:         ['in_progress', 'closed'],
@@ -66,8 +81,8 @@ const TicketDetail = () => {
   useEffect(() => {
     load();
     if (isStaff) {
-      api.get('/templates').then(({ data }) => setTemplates(data)).catch(() => {});
-      api.get('/users/technicians').then(({ data }) => setTechnicians(data)).catch(() => {});
+      api.get('/templates').then(({ data }) => setTemplates(Array.isArray(data) ? data : [])).catch(() => setTemplates([]));
+      api.get('/users/technicians').then(({ data }) => setTechnicians(Array.isArray(data) ? data : [])).catch(() => setTechnicians([]));
     }
   }, [id]);
 
@@ -289,8 +304,9 @@ const TicketDetail = () => {
                 {timelineItems.map(item => {
                   if (item._itemType === 'event') {
                     const ev = item;
-                    const assignedUserName = ev.type === 'assignment' && ev.metadata?.assignee_id 
-                      ? (ev.metadata.assignee_id === ticket.assignee?.id ? ticket.assignee?.name : technicians.find(t => t.id === ev.metadata.assignee_id)?.name || 'Técnico') 
+                    const meta = parseMetadata(ev.metadata);
+                    const assignedUserName = ev.type === 'assignment' && meta?.assignee_id 
+                      ? (meta.assignee_id === ticket.assignee?.id ? ticket.assignee?.name : (Array.isArray(technicians) ? technicians.find(t => t.id === meta.assignee_id)?.name : null) || 'Técnico') 
                       : null;
 
                     return (
@@ -304,15 +320,15 @@ const TicketDetail = () => {
                           </div>
                           <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
                             {EVENT_LABELS[ev.type] || ev.type}
-                            {ev.type === 'status_change' && ev.metadata && (
-                              <span>: {STATUS_LABELS[ev.metadata.old || ev.metadata.from]} → {STATUS_LABELS[ev.metadata.new || ev.metadata.to]}</span>
+                            {ev.type === 'status_change' && meta && (
+                              <span>: {STATUS_LABELS[meta.old || meta.from] || meta.old || meta.from} → {STATUS_LABELS[meta.new || meta.to] || meta.new || meta.to}</span>
                             )}
                             {ev.type === 'assignment' && assignedUserName && (
                               <span> para {assignedUserName}</span>
                             )}
-                            {ev.type === 'rating_added' && (ev.metadata?.rating || ticket.rating) && (
+                            {ev.type === 'rating_added' && (meta?.rating || ticket.rating) && (
                               <div style={{ marginTop: 4, padding: '8px 12px', background: 'rgba(245,158,11,0.1)', borderRadius: 4, color: 'var(--color-warning)', display: 'inline-block' }}>
-                                ★ {ev.metadata?.rating || ticket.rating} / 5
+                                ★ {meta?.rating || ticket.rating} / 5
                                 {ticket.rating_comment && <span style={{ marginLeft: 8, fontStyle: 'italic', color: 'var(--color-text-muted)' }}>"{ticket.rating_comment}"</span>}
                               </div>
                             )}

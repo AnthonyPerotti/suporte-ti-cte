@@ -17,7 +17,12 @@ const STATUS_OPTIONS = [
 ];
 
 const formatDate = (d) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
-const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return '?';
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return '?';
+  return parts.slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+};
 
 const AdminTickets = () => {
   const [tickets, setTickets] = useState([]);

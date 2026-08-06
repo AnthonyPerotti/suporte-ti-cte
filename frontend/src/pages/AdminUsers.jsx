@@ -5,7 +5,12 @@ import api from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 
-const getInitials = (name) => name?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+const getInitials = (name) => {
+  if (!name || typeof name !== 'string') return '?';
+  const parts = name.trim().split(' ').filter(Boolean);
+  if (parts.length === 0) return '?';
+  return parts.slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?';
+};
 
 const AdminUsers = () => {
   const { user: currentUser } = useAuth();
