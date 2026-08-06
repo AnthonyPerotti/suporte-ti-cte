@@ -41,21 +41,45 @@ const exportPdf = async (req, res) => {
 
     doc.pipe(res);
 
-    // UFSM Logo Header
-    const logoPath = path.join(__dirname, '..', 'assets', 'ufsm-logo.png');
-    if (fs.existsSync(logoPath)) {
-      doc.image(logoPath, 40, 35, { width: 140 });
+    // Watermark background function
+    const drawWatermark = () => {
+      const watermarkPath = path.join(__dirname, '..', 'assets', 'ufsm-watermark.png');
+      if (fs.existsSync(watermarkPath)) {
+        doc.save();
+        doc.opacity(0.06);
+        doc.image(watermarkPath, 110, 230, { width: 375 });
+        doc.restore();
+      }
+    };
+
+    doc.on('pageAdded', () => {
+      drawWatermark();
+    });
+
+    // Draw watermark on first page
+    drawWatermark();
+
+    // Logos Header
+    const ufsmLogoPath = path.join(__dirname, '..', 'assets', 'ufsm-logo-header.png');
+    const cteLogoPath = path.join(__dirname, '..', 'assets', 'cte-logo-full.png');
+
+    if (fs.existsSync(ufsmLogoPath)) {
+      doc.image(ufsmLogoPath, 40, 25, { height: 55 });
+    }
+    if (fs.existsSync(cteLogoPath)) {
+      doc.image(cteLogoPath, 125, 28, { height: 48 });
     }
 
-    doc.font('Helvetica-Bold').fontSize(16).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 200, 35);
-    doc.font('Helvetica').fontSize(11).fillColor('#475569').text('Centro de Tecnologia - CTE | Suporte TI', 200, 55);
-    doc.fontSize(10).fillColor('#64748b').text(`Relatório de Atendimentos: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 200, 72);
+    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 215, 28);
+    doc.font('Helvetica-Bold').fontSize(9.5).fillColor('#2563eb').text('Coordenadoria de Tecnologia Educacional - CTE', 215, 46);
+    doc.font('Helvetica').fontSize(9).fillColor('#475569').text('Suporte TI | Relatório de Atendimentos', 215, 62);
+    doc.font('Helvetica').fontSize(8).fillColor('#64748b').text(`Período: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 215, 76);
 
-    doc.moveTo(40, 100).lineTo(555, 100).strokeColor('#cbd5e1').lineWidth(1).stroke();
+    doc.moveTo(40, 95).lineTo(555, 95).strokeColor('#cbd5e1').lineWidth(1).stroke();
 
     // Summary Box
-    doc.rect(40, 115, 515, 60).fillAndStroke('#f8fafc', '#e2e8f0');
-    doc.fillColor('#1e293b').font('Helvetica-Bold').fontSize(11);
+    doc.rect(40, 110, 515, 55).fillAndStroke('#f8fafc', '#e2e8f0');
+    doc.fillColor('#1e293b').font('Helvetica-Bold').fontSize(10.5);
     
     const total = tickets.length;
     const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
@@ -66,7 +90,7 @@ const exportPdf = async (req, res) => {
     doc.text(`Em Andamento: ${open}`, 405, 130);
 
     // Table Header
-    let y = 195;
+    let y = 185;
     doc.rect(40, y, 515, 24).fill('#1e3a5f');
     doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(9);
     doc.text('ID', 48, y + 7);
@@ -78,7 +102,7 @@ const exportPdf = async (req, res) => {
     y += 24;
 
     doc.font('Helvetica').fontSize(8);
-    tickets.slice(0, 30).forEach((t, i) => {
+    tickets.slice(0, 40).forEach((t, i) => {
       if (y > 750) {
         doc.addPage();
         y = 40;
