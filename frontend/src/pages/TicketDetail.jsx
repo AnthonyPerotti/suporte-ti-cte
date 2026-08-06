@@ -7,14 +7,15 @@ import { useToast } from '../contexts/ToastContext';
 import { useAuth } from '../contexts/AuthContext';
 import DOMPurify from 'dompurify';
 import RichTextEditor from '../components/RichTextEditor';
+import { getUploadUrl } from '../utils/url';
 
 const EVENT_LABELS = {
-  created:         'Chamado aberto',
-  status_change:   'Status alterado',
-  assignment:      'Chamado atribuído',
-  comment_added:   'Resposta adicionada',
-  rating_added:    'Chamado avaliado',
-  attachment_added:'Anexo adicionado',
+  created: 'Chamado aberto',
+  status_change: 'Status alterado',
+  assignment: 'Chamado atribuído',
+  comment_added: 'Resposta adicionada',
+  rating_added: 'Chamado avaliado',
+  attachment_added: 'Anexo adicionado',
 };
 
 const formatDate = (d) => {
@@ -36,11 +37,11 @@ const parseMetadata = (meta) => {
 };
 
 const STATUS_TRANSITIONS = {
-  open:         ['in_progress', 'closed'],
-  in_progress:  ['waiting_user', 'resolved', 'closed'],
+  open: ['in_progress', 'closed'],
+  in_progress: ['waiting_user', 'resolved', 'closed'],
   waiting_user: ['in_progress', 'resolved', 'closed'],
-  resolved:     ['closed', 'in_progress'],
-  closed:       ['in_progress'],
+  resolved: ['closed', 'in_progress'],
+  closed: ['in_progress'],
 };
 
 const STATUS_LABELS = { open: 'Aberto', in_progress: 'Em Atendimento', waiting_user: 'Aguardando Usuário', resolved: 'Resolvido', closed: 'Encerrado' };
@@ -103,7 +104,7 @@ const TicketDetail = () => {
       });
       setComment('');
       setAttachments([]);
-      
+
       // If we are sending a normal response (not internal), and the ticket is in waiting_user, we can auto-switch to in_progress if user replies, 
       // but let's just reload for now
       await load();
@@ -116,7 +117,7 @@ const TicketDetail = () => {
   };
 
   const handleJitsiMeet = () => {
-    const roomName = `SuporteTI-${id}-${Math.random().toString(36).substring(2,8)}`;
+    const roomName = `SuporteTI-${id}-${Math.random().toString(36).substring(2, 8)}`;
     const jitsiUrl = `https://meet.jit.si/${roomName}`;
     setComment(prev => prev ? `${prev}\n\nAcesse a sala de reunião: ${jitsiUrl}` : `Acesse a sala de reunião: ${jitsiUrl}`);
   };
@@ -172,10 +173,10 @@ const TicketDetail = () => {
     if (!window.confirm('Arquivar este chamado? Ele sairá da lista principal.')) return;
     try {
       await api.patch(`/tickets/${id}/archive`);
-      
+
       // Post internal note for history
       await api.post(`/tickets/${id}/comments`, { content: 'Chamado arquivado pelo administrador.', is_internal: true });
-      
+
       toast.success('Chamado arquivado');
       navigate('/');
     } catch { toast.error('Erro ao arquivar'); }
@@ -185,10 +186,10 @@ const TicketDetail = () => {
     if (!window.confirm('Desarquivar este chamado? Ele voltará para a lista principal.')) return;
     try {
       await api.patch(`/tickets/${id}/unarchive`);
-      
+
       // Post internal note for history
       await api.post(`/tickets/${id}/comments`, { content: 'Chamado desarquivado pelo administrador.', is_internal: true });
-      
+
       toast.success('Chamado desarquivado');
       await load();
     } catch { toast.error('Erro ao desarquivar'); }
@@ -226,7 +227,7 @@ const TicketDetail = () => {
   }
 
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
-  
+
   const canEdit = !isStaff || ['admin', 'root'].includes(user?.role) || (user?.id && ticket.assignee_id === user.id);
   const isUnassignedTech = isStaff && user?.role === 'technician' && !ticket.assignee_id;
   const isAssignedToOther = isStaff && user?.role === 'technician' && Boolean(ticket.assignee_id && ticket.assignee_id !== user?.id);
@@ -274,7 +275,7 @@ const TicketDetail = () => {
               </div>
 
               <div className="divider" />
-              <div 
+              <div
                 style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)' }}
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description || '') }}
               />
@@ -305,8 +306,8 @@ const TicketDetail = () => {
                   if (item._itemType === 'event') {
                     const ev = item;
                     const meta = parseMetadata(ev.metadata);
-                    const assignedUserName = ev.type === 'assignment' && meta?.assignee_id 
-                      ? (meta.assignee_id === ticket.assignee?.id ? ticket.assignee?.name : (Array.isArray(technicians) ? technicians.find(t => t.id === meta.assignee_id)?.name : null) || 'Técnico') 
+                    const assignedUserName = ev.type === 'assignment' && meta?.assignee_id
+                      ? (meta.assignee_id === ticket.assignee?.id ? ticket.assignee?.name : (Array.isArray(technicians) ? technicians.find(t => t.id === meta.assignee_id)?.name : null) || 'Técnico')
                       : null;
 
                     return (
@@ -354,23 +355,23 @@ const TicketDetail = () => {
                             <strong>{c.author?.name || 'Sistema'}</strong> — {formatDate(c.created_at)}
                             {c.is_internal && <span style={{ marginLeft: 8, color: 'var(--color-warning)', fontWeight: 600, fontSize: '0.72rem' }}>NOTA INTERNA</span>}
                           </div>
-                          <div 
+                          <div
                             className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
                             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content || '') }}
                           />
                           {c.attachments?.length > 0 && (
-                              <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                {c.attachments.map(a => {
-                                  const url = getUploadUrl(a.path);
-                                  const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
-                                  return (
-                                    <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
-                                      {isImage ? <img src={url} alt={a.filename || 'anexo'} style={{ width: 120, height: 120, objectFit: 'cover' }} /> : `📎 ${a.filename || 'anexo'}`}
-                                    </a>
-                                  );
-                                })}
-                              </div>
-                            )}
+                            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                              {c.attachments.map(a => {
+                                const url = getUploadUrl(a.path);
+                                const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
+                                return (
+                                  <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
+                                    {isImage ? <img src={url} alt={a.filename || 'anexo'} style={{ width: 120, height: 120, objectFit: 'cover' }} /> : `📎 ${a.filename || 'anexo'}`}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
@@ -390,61 +391,61 @@ const TicketDetail = () => {
                     {isUnassignedTech ? 'Você precisa assumir este chamado para responder.' : 'Este chamado está atribuído a outro técnico.'}
                   </div>
                 ) : (
-                <form onSubmit={submitComment}>
-                  {isStaff && Array.isArray(templates) && templates.length > 0 && (
+                  <form onSubmit={submitComment}>
+                    {isStaff && Array.isArray(templates) && templates.length > 0 && (
+                      <div className="form-group">
+                        <label className="form-label">Resposta rápida</label>
+                        <select className="form-select" onChange={e => { if (e.target.value) setComment(e.target.value); }}>
+                          <option value="">Selecionar template...</option>
+                          {templates.map(t => <option key={t.id} value={t.content}>{t.title}</option>)}
+                        </select>
+                      </div>
+                    )}
+
+                    {isStaff && (
+                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleJitsiMeet} style={{ marginBottom: 12 }}>
+                        🎥 Gerar Link Jitsi Meet
+                      </button>
+                    )}
+
                     <div className="form-group">
-                      <label className="form-label">Resposta rápida</label>
-                      <select className="form-select" onChange={e => { if (e.target.value) setComment(e.target.value); }}>
-                        <option value="">Selecionar template...</option>
-                        {templates.map(t => <option key={t.id} value={t.content}>{t.title}</option>)}
-                      </select>
-                    </div>
-                  )}
-
-                  {isStaff && (
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleJitsiMeet} style={{ marginBottom: 12 }}>
-                      🎥 Gerar Link Jitsi Meet
-                    </button>
-                  )}
-
-                  <div className="form-group">
-                    <RichTextEditor
-                      value={comment}
-                      onChange={setComment}
-                      placeholder={isInternal ? 'Nota interna (visível apenas para a equipe de TI)...' : 'Digite sua resposta...'}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                      <span style={{ fontSize: '1.2rem' }}>📎</span> Anexar arquivos
-                    </label>
-                    <input 
-                      type="file" 
-                      multiple 
-                      onChange={e => setAttachments(e.target.files)} 
-                      style={{ fontSize: '0.875rem' }}
-                    />
-                  </div>
-
-                  {isStaff && (
-                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input
-                        type="checkbox"
-                        id="is_internal"
-                        checked={isInternal}
-                        onChange={e => setIsInternal(e.target.checked)}
+                      <RichTextEditor
+                        value={comment}
+                        onChange={setComment}
+                        placeholder={isInternal ? 'Nota interna (visível apenas para a equipe de TI)...' : 'Digite sua resposta...'}
                       />
-                      <label htmlFor="is_internal" style={{ fontSize: '0.875rem', cursor: 'pointer', color: 'var(--color-warning)', fontWeight: 600 }}>
-                        Nota interna (visível apenas para a equipe de TI)
-                      </label>
                     </div>
-                  )}
 
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
-                    {submitting ? 'Enviando...' : 'Enviar Resposta'}
-                  </button>
-                </form>
+                    <div className="form-group">
+                      <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                        <span style={{ fontSize: '1.2rem' }}>📎</span> Anexar arquivos
+                      </label>
+                      <input
+                        type="file"
+                        multiple
+                        onChange={e => setAttachments(e.target.files)}
+                        style={{ fontSize: '0.875rem' }}
+                      />
+                    </div>
+
+                    {isStaff && (
+                      <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <input
+                          type="checkbox"
+                          id="is_internal"
+                          checked={isInternal}
+                          onChange={e => setIsInternal(e.target.checked)}
+                        />
+                        <label htmlFor="is_internal" style={{ fontSize: '0.875rem', cursor: 'pointer', color: 'var(--color-warning)', fontWeight: 600 }}>
+                          Nota interna (visível apenas para a equipe de TI)
+                        </label>
+                      </div>
+                    )}
+
+                    <button type="submit" className="btn btn-primary" disabled={submitting}>
+                      {submitting ? 'Enviando...' : 'Enviar Resposta'}
+                    </button>
+                  </form>
                 )}
               </div>
             )}
@@ -457,16 +458,16 @@ const TicketDetail = () => {
                   Seu chamado foi resolvido! Como você avalia o atendimento recebido?
                 </p>
                 <div className="star-rating" style={{ marginBottom: 16 }}>
-                  {[1,2,3,4,5].map(s => (
+                  {[1, 2, 3, 4, 5].map(s => (
                     <span key={s} className={`star${s <= rating ? ' filled' : ''}`} onClick={() => setRating(s)}>★</span>
                   ))}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Comentário (opcional)</label>
-                  <textarea 
-                    className="form-textarea" 
-                    value={ratingComment} 
-                    onChange={e => setRatingComment(e.target.value)} 
+                  <textarea
+                    className="form-textarea"
+                    value={ratingComment}
+                    onChange={e => setRatingComment(e.target.value)}
                     placeholder="Conte-nos como foi a sua experiência..."
                   />
                 </div>
@@ -518,7 +519,7 @@ const TicketDetail = () => {
                 ) : (
                   <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>Não atribuído</p>
                 )}
-                
+
                 {['admin', 'root'].includes(user?.role) ? (
                   <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                     <option value="">Sem atribuição</option>
@@ -583,11 +584,11 @@ const TicketDetail = () => {
                 </div>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label">Data Limite (Due Date)</label>
-                  <input 
-                    type="date" 
-                    className="form-input" 
-                    value={ticket.due_date ? ticket.due_date.split('T')[0] : ''} 
-                    onChange={e => updateTicketData({ due_date: e.target.value || null })} 
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={ticket.due_date ? ticket.due_date.split('T')[0] : ''}
+                    onChange={e => updateTicketData({ due_date: e.target.value || null })}
                   />
                 </div>
               </div>
@@ -621,7 +622,7 @@ const TicketDetail = () => {
               <div className="card">
                 <div className="card-title">Avaliação do Usuário</div>
                 <div className="star-rating" style={{ marginBottom: 8 }}>
-                  {[1,2,3,4,5].map(s => (
+                  {[1, 2, 3, 4, 5].map(s => (
                     <span key={s} className={`star${s <= ticket.rating ? ' filled' : ''}`} style={{ cursor: 'default', fontSize: '1.2rem' }}>★</span>
                   ))}
                 </div>
