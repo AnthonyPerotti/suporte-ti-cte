@@ -87,15 +87,30 @@ const TicketDetail = () => {
     }
   }, [id]);
 
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setAttachments(prev => {
+      const existing = new Set((prev || []).map(f => `${f.name}-${f.size}`));
+      const newUnique = files.filter(f => !existing.has(`${f.name}-${f.size}`));
+      return [...(prev || []), ...newUnique];
+    });
+    e.target.value = '';
+  };
+
+  const removeSelectedFile = (index) => {
+    setAttachments(prev => (prev || []).filter((_, i) => i !== index));
+  };
+
   const submitComment = async (e) => {
     e.preventDefault();
-    if (!comment.trim() && attachments.length === 0) return;
+    if (!comment.trim() && (!attachments || attachments.length === 0)) return;
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('content', comment || 'Anexo enviado');
+      formData.append('content', comment || '');
       formData.append('is_internal', isInternal);
-      Array.from(attachments).forEach(file => {
+      Array.from(attachments || []).forEach(file => {
         formData.append('attachments', file);
       });
 
@@ -104,9 +119,7 @@ const TicketDetail = () => {
       });
       setComment('');
       setAttachments([]);
-
-      // If we are sending a normal response (not internal), and the ticket is in waiting_user, we can auto-switch to in_progress if user replies, 
-      // but let's just reload for now
+      
       await load();
       toast.success('Resposta enviada');
     } catch (err) {
@@ -459,19 +472,78 @@ const TicketDetail = () => {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: 16 }}>
-                      <label htmlFor="comment-attachments" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                        <span style={{ fontSize: '1.1rem' }}>📎</span> Anexar arquivos
+                      <label
+                        htmlFor="comment-attachments"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          cursor: 'pointer',
+                          padding: '6px 4px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: 'var(--color-primary)',
+                          fontWeight: 700,
+                          fontSize: '0.8rem',
+                          letterSpacing: '0.06em',
+                          textTransform: 'uppercase',
+                          userSelect: 'none',
+                          transition: 'opacity 0.2s',
+                        }}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                        </svg>
+                        ANEXAR ARQUIVOS
                         <input
                           id="comment-attachments"
                           type="file"
                           multiple
-                          onChange={e => setAttachments(e.target.files)}
+                          onChange={handleFileSelect}
                           style={{ display: 'none' }}
                         />
                       </label>
+
                       {attachments && attachments.length > 0 && (
-                        <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', marginTop: 8, fontWeight: 600 }}>
-                          ✓ {attachments.length} arquivo(s) selecionado(s): {Array.from(attachments).map(f => f.name).join(', ')}
+                        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                          {attachments.map((file, idx) => (
+                            <div
+                              key={`${file.name}-${idx}`}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 8,
+                                padding: '6px 12px',
+                                background: 'rgba(59, 130, 246, 0.12)',
+                                border: '1px solid rgba(59, 130, 246, 0.3)',
+                                borderRadius: 6,
+                                fontSize: '0.82rem',
+                                color: 'var(--color-text)',
+                              }}
+                            >
+                              <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>📎</span>
+                              <span className="truncate" style={{ maxWidth: 220, fontWeight: 500 }}>{file.name}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>({(file.size / 1024).toFixed(0)} KB)</span>
+                              <button
+                                type="button"
+                                onClick={() => removeSelectedFile(idx)}
+                                style={{
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: 'var(--color-danger)',
+                                  cursor: 'pointer',
+                                  fontWeight: 700,
+                                  fontSize: '0.95rem',
+                                  padding: '0 2px',
+                                  marginLeft: 4,
+                                  lineHeight: 1,
+                                }}
+                                title="Remover este arquivo"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
