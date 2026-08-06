@@ -192,6 +192,29 @@ const NewTicket = () => {
               </div>
             </div>
 
+            {/* Classificação */}
+            <div className="card" style={{ marginBottom: 16 }}>
+              <div className="card-title">Classificação</div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="cat">Categoria</label>
+                <select id="cat" className="form-select" value={categoryId} onChange={e => { setCategoryId(e.target.value); setSubcategoryId(''); }}>
+                  <option value="">Selecione...</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+
+              {subcategories.length > 0 && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" htmlFor="subcat">Subcategoria</label>
+                  <select id="subcat" className="form-select" value={subcategoryId} onChange={e => setSubcategoryId(e.target.value)}>
+                    <option value="">Selecione...</option>
+                    {subcategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
             {/* Attachments */}
             <div className="card" style={{ marginBottom: 16 }}>
               <div className="card-title">Anexos <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>(opcional, máx. 5 arquivos)</span></div>
@@ -240,56 +263,6 @@ const NewTicket = () => {
 
           {/* Sidebar options */}
           <div>
-            {isStaff && (
-              <div className="card" style={{ marginBottom: 16 }}>
-                <div className="card-title">Opções de Atendimento</div>
-                
-                <div className="form-group">
-                  <label className="form-label" htmlFor="onBehalf">Solicitante (Abrir em nome de...)</label>
-                  <select id="onBehalf" className="form-select" value={onBehalfUserId} onChange={e => setOnBehalfUserId(e.target.value)}>
-                    <option value="">Você ({user?.name})</option>
-                    {allUsers.filter(u => u.id !== user?.id).map(u => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" htmlFor="assignee">Atribuir diretamente a...</label>
-                  <select id="assignee" className="form-select" value={assigneeId} onChange={e => setAssigneeId(e.target.value)}>
-                    <option value="">Deixar em aberto (Sem atribuição)</option>
-                    {technicians.map(t => (
-                      <option key={t.id} value={t.id}>{t.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            <div className="card" style={{ marginBottom: 16 }}>
-              <div className="card-title">Classificação</div>
-
-
-
-              <div className="form-group">
-                <label className="form-label" htmlFor="cat">Categoria</label>
-                <select id="cat" className="form-select" value={categoryId} onChange={e => { setCategoryId(e.target.value); setSubcategoryId(''); }}>
-                  <option value="">Selecione...</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-
-              {subcategories.length > 0 && (
-                <div className="form-group">
-                  <label className="form-label" htmlFor="subcat">Subcategoria</label>
-                  <select id="subcat" className="form-select" value={subcategoryId} onChange={e => setSubcategoryId(e.target.value)}>
-                    <option value="">Selecione...</option>
-                    {subcategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
             <div className="card" style={{ background: 'var(--color-primary-light)', border: '1px solid rgba(37,99,235,0.2)' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--color-text)' }}>
                 <div style={{ fontWeight: 600, marginBottom: 8 }}>Dicas para um bom chamado:</div>
