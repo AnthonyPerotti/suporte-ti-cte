@@ -199,6 +199,17 @@ const TicketDetail = () => {
     );
   }
 
+  if (!ticket) {
+    return (
+      <div className="app-layout">
+        <Sidebar />
+        <main className="main-content">
+          <div className="card"><div className="empty-state">Chamado não encontrado ou você não tem permissão para acessá-lo.</div></div>
+        </main>
+      </div>
+    );
+  }
+
   const canRate = !isStaff && ['resolved', 'closed'].includes(ticket.status) && !ratingSubmitted;
   
   const canEdit = !isStaff || ['admin', 'root'].includes(user?.role) || ticket.assignee_id === user.id;

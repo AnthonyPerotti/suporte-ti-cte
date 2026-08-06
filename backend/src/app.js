@@ -17,6 +17,9 @@ const auditRoutes = require('./routes/audit.routes');
 
 const app = express();
 
+// Trust proxy for reverse proxies (Nginx/Portainer)
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -42,6 +45,7 @@ const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 20,
   message: { error: 'Muitas tentativas de acesso. Por favor, aguarde 5 minutos e tente novamente.' },
+  validate: { xForwardedForHeader: false },
 });
 
 // Static file serving for uploads
