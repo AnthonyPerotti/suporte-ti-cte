@@ -26,11 +26,10 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Digite aqui...' }) => 
   });
 
   useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
-      if (!value) {
-        editor.commands.setContent('');
-      } else if (value !== editor.getHTML()) {
-        editor.commands.setContent(value);
+    if (editor && !editor.isFocused) {
+      const currentHtml = editor.getHTML();
+      if (value !== currentHtml) {
+        editor.commands.setContent(value || '', false);
       }
     }
   }, [value, editor]);
