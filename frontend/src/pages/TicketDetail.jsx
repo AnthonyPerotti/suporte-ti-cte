@@ -268,7 +268,7 @@ const TicketDetail = () => {
               </div>
               <h1 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 8 }}>{ticket.title}</h1>
               <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <span>#{ticket.id.slice(0, 8).toUpperCase()}</span>
+                <span>#{ticket.id ? ticket.id.slice(0, 8).toUpperCase() : ''}</span>
                 <span>Aberto em {formatDate(ticket.created_at)}</span>
                 {ticket.category && <span>Categoria: {ticket.category.name}</span>}
               </div>
@@ -276,7 +276,7 @@ const TicketDetail = () => {
               <div className="divider" />
               <div 
                 style={{ fontSize: '0.9rem', lineHeight: 1.7, color: 'var(--color-text)' }}
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description) }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ticket.description || '') }}
               />
 
               {ticket.attachments?.length > 0 && (
@@ -285,10 +285,10 @@ const TicketDetail = () => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {ticket.attachments.map(a => {
                       const url = getUploadUrl(a.path);
-                      const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+                      const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
                       return (
                         <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
-                          {isImage ? <img src={url} alt={a.filename} style={{ width: 100, height: 100, objectFit: 'cover' }} /> : `📎 ${a.filename}`}
+                          {isImage ? <img src={url} alt={a.filename || 'anexo'} style={{ width: 100, height: 100, objectFit: 'cover' }} /> : `📎 ${a.filename || 'anexo'}`}
                         </a>
                       );
                     })}
@@ -356,16 +356,16 @@ const TicketDetail = () => {
                           </div>
                           <div 
                             className={`timeline-content${c.is_internal ? ' timeline-internal' : ''}`}
-                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content) }}
+                            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(c.content || '') }}
                           />
                           {c.attachments?.length > 0 && (
                               <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                                 {c.attachments.map(a => {
                                   const url = getUploadUrl(a.path);
-                                  const isImage = a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+                                  const isImage = a.filename && typeof a.filename === 'string' ? a.filename.match(/\.(jpg|jpeg|png|webp|gif)$/i) : false;
                                   return (
                                     <a key={a.id} href={url} target="_blank" rel="noreferrer" className="upload-file-item" style={{ textDecoration: 'none', background: 'var(--color-bg)', border: '1px solid var(--color-border)', padding: isImage ? 0 : undefined, overflow: 'hidden' }}>
-                                      {isImage ? <img src={url} alt={a.filename} style={{ width: 120, height: 120, objectFit: 'cover' }} /> : `📎 ${a.filename}`}
+                                      {isImage ? <img src={url} alt={a.filename || 'anexo'} style={{ width: 120, height: 120, objectFit: 'cover' }} /> : `📎 ${a.filename || 'anexo'}`}
                                     </a>
                                   );
                                 })}
@@ -391,7 +391,7 @@ const TicketDetail = () => {
                   </div>
                 ) : (
                 <form onSubmit={submitComment}>
-                  {isStaff && templates.length > 0 && (
+                  {isStaff && Array.isArray(templates) && templates.length > 0 && (
                     <div className="form-group">
                       <label className="form-label">Resposta rápida</label>
                       <select className="form-select" onChange={e => { if (e.target.value) setComment(e.target.value); }}>
@@ -401,11 +401,11 @@ const TicketDetail = () => {
                     </div>
                   )}
 
-                    {isStaff && (
-                      <button type="button" className="btn btn-secondary btn-sm" onClick={handleJitsiMeet} style={{ marginBottom: 12 }}>
-                        🎥 Gerar Link Jitsi Meet
-                      </button>
-                    )}
+                  {isStaff && (
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleJitsiMeet} style={{ marginBottom: 12 }}>
+                      🎥 Gerar Link Jitsi Meet
+                    </button>
+                  )}
 
                   <div className="form-group">
                     <RichTextEditor
@@ -418,32 +418,32 @@ const TicketDetail = () => {
                   <div className="form-group">
                     <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
                       <span style={{ fontSize: '1.2rem' }}>📎</span> Anexar arquivos
-                      <input 
-                        type="file" 
-                        multiple 
-                        onChange={e => setAttachments(e.target.files)} 
-                        style={{ display: 'none' }}
-                      />
                     </label>
-                    {attachments.length > 0 && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-                        {attachments.length} arquivo(s) selecionado(s)
-                      </div>
-                    )}
+                    <input 
+                      type="file" 
+                      multiple 
+                      onChange={e => setAttachments(e.target.files)} 
+                      style={{ fontSize: '0.875rem' }}
+                    />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-                    {isStaff && (
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
-                        <input type="checkbox" checked={isInternal} onChange={e => setIsInternal(e.target.checked)} />
-                        Nota interna (invisível para o usuário)
+                  {isStaff && (
+                    <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="checkbox"
+                        id="is_internal"
+                        checked={isInternal}
+                        onChange={e => setIsInternal(e.target.checked)}
+                      />
+                      <label htmlFor="is_internal" style={{ fontSize: '0.875rem', cursor: 'pointer', color: 'var(--color-warning)', fontWeight: 600 }}>
+                        Nota interna (visível apenas para a equipe de TI)
                       </label>
-                    )}
-                    <button type="submit" className="btn btn-primary" disabled={submitting || (!comment.trim() && attachments.length === 0)} style={{ marginLeft: 'auto' }}>
-                      {submitting ? <span className="spinner" /> : null}
-                      Enviar
-                    </button>
-                  </div>
+                    </div>
+                  )}
+
+                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                    {submitting ? 'Enviando...' : 'Enviar Resposta'}
+                  </button>
                 </form>
                 )}
               </div>
@@ -491,8 +491,8 @@ const TicketDetail = () => {
                   )}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.user?.name}</div>
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.user?.email}</div>
+                  <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.user?.name || 'Solicitante'}</div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.user?.email || '—'}</div>
                 </div>
               </div>
             </div>
@@ -511,8 +511,8 @@ const TicketDetail = () => {
                       )}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.assignee.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.assignee.email}</div>
+                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{ticket.assignee.name || 'Técnico'}</div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>{ticket.assignee.email || '—'}</div>
                     </div>
                   </div>
                 ) : (
@@ -522,21 +522,21 @@ const TicketDetail = () => {
                 {['admin', 'root'].includes(user?.role) ? (
                   <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                     <option value="">Sem atribuição</option>
-                    {technicians.map(t => (
+                    {Array.isArray(technicians) && technicians.map(t => (
                       <option key={t.id} value={t.id} disabled={t.is_absent}>
-                        {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + new Date(t.absence_until).toLocaleDateString('pt-BR') : ''})` : ''}
+                        {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + formatDate(t.absence_until).substring(0, 10) : ''})` : ''}
                       </option>
                     ))}
                   </select>
                 ) : (
                   !ticket.assignee_id ? (
-                    <button className="btn btn-success btn-sm btn-full" onClick={() => assignTech(user.id)}>Aceitar Chamado</button>
+                    <button className="btn btn-primary btn-sm btn-full" onClick={() => assignTech(user.id)}>Aceitar Chamado</button>
                   ) : ticket.assignee_id === user.id ? (
                     <select className="form-select" value={ticket.assignee_id || ''} onChange={e => assignTech(e.target.value || null)}>
                       <option value={user.id}>{user.name}</option>
-                      {technicians.filter(t => t.id !== user.id).map(t => (
+                      {Array.isArray(technicians) && technicians.filter(t => t.id !== user.id).map(t => (
                         <option key={t.id} value={t.id} disabled={t.is_absent}>
-                          Tramitar para: {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + new Date(t.absence_until).toLocaleDateString('pt-BR') : ''})` : ''}
+                          Tramitar para: {t.name} {t.is_absent ? `🏖️ (Ausente${t.absence_until ? ' até ' + formatDate(t.absence_until).substring(0, 10) : ''})` : ''}
                         </option>
                       ))}
                     </select>
