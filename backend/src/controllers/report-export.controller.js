@@ -47,15 +47,15 @@ const exportPdf = async (req, res) => {
       doc.image(logoPath, 40, 35, { width: 140 });
     }
 
-    doc.setFont('Helvetica-Bold').fontSize(16).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 200, 35);
-    doc.setFont('Helvetica').fontSize(11).fillColor('#475569').text('Centro de Tecnologia - CTE | Suporte TI', 200, 55);
+    doc.font('Helvetica-Bold').fontSize(16).fillColor('#1e3a5f').text('UNIVERSIDADE FEDERAL DE SANTA MARIA', 200, 35);
+    doc.font('Helvetica').fontSize(11).fillColor('#475569').text('Centro de Tecnologia - CTE | Suporte TI', 200, 55);
     doc.fontSize(10).fillColor('#64748b').text(`Relatório de Atendimentos: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 200, 72);
 
     doc.moveTo(40, 100).lineTo(555, 100).strokeColor('#cbd5e1').strokeWidth(1).stroke();
 
     // Summary Box
     doc.rect(40, 115, 515, 60).fillAndStroke('#f8fafc', '#e2e8f0');
-    doc.fillColor('#1e293b').setFont('Helvetica-Bold').fontSize(11);
+    doc.fillColor('#1e293b').font('Helvetica-Bold').fontSize(11);
     
     const total = tickets.length;
     const resolved = tickets.filter(t => t.status === 'resolved' || t.status === 'closed').length;
@@ -68,7 +68,7 @@ const exportPdf = async (req, res) => {
     // Table Header
     let y = 195;
     doc.rect(40, y, 515, 24).fill('#1e3a5f');
-    doc.fillColor('#ffffff').setFont('Helvetica-Bold').fontSize(9);
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(9);
     doc.text('ID', 48, y + 7);
     doc.text('TÍTULO / SOLICITANTE', 105, y + 7);
     doc.text('CATEGORIA', 310, y + 7);
@@ -77,7 +77,7 @@ const exportPdf = async (req, res) => {
 
     y += 24;
 
-    doc.setFont('Helvetica').fontSize(8);
+    doc.font('Helvetica').fontSize(8);
     tickets.slice(0, 30).forEach((t, i) => {
       if (y > 750) {
         doc.addPage();
@@ -88,8 +88,8 @@ const exportPdf = async (req, res) => {
       doc.rect(40, y, 515, 22).fill(bg);
 
       doc.fillColor('#334155').text(`#${t.id.slice(0, 8).toUpperCase()}`, 48, y + 6);
-      doc.fillColor('#0f172a').setFont('Helvetica-Bold').text(t.title.slice(0, 35), 105, y + 6);
-      doc.setFont('Helvetica').fillColor('#64748b').text(t.category ? t.category.name : 'Geral', 310, y + 6);
+      doc.fillColor('#0f172a').font('Helvetica-Bold').text(t.title.slice(0, 35), 105, y + 6);
+      doc.font('Helvetica').fillColor('#64748b').text(t.category ? t.category.name : 'Geral', 310, y + 6);
       doc.fillColor('#2563eb').text(t.status.toUpperCase(), 415, y + 6);
       doc.fillColor('#475569').text(new Date(t.created_at).toLocaleDateString('pt-BR'), 485, y + 6);
 
