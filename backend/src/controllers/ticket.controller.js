@@ -374,7 +374,9 @@ const updateTicket = async (req, res) => {
 
 const addComment = async (req, res) => {
   let { content, is_internal = false } = req.body;
-  if (!content) return res.status(400).json({ error: 'Content is required' });
+  const hasFiles = req.files && req.files.length > 0;
+  if (!content && !hasFiles) return res.status(400).json({ error: 'Conteúdo ou anexo é obrigatório' });
+  if (!content) content = '';
 
   is_internal = is_internal === 'true' || is_internal === true;
 
