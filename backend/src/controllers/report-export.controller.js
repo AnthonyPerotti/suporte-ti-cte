@@ -51,7 +51,7 @@ const exportPdf = async (req, res) => {
     doc.font('Helvetica').fontSize(11).fillColor('#475569').text('Centro de Tecnologia - CTE | Suporte TI', 200, 55);
     doc.fontSize(10).fillColor('#64748b').text(`Relatório de Atendimentos: ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`, 200, 72);
 
-    doc.moveTo(40, 100).lineTo(555, 100).strokeColor('#cbd5e1').strokeWidth(1).stroke();
+    doc.moveTo(40, 100).lineTo(555, 100).strokeColor('#cbd5e1').lineWidth(1).stroke();
 
     // Summary Box
     doc.rect(40, 115, 515, 60).fillAndStroke('#f8fafc', '#e2e8f0');
