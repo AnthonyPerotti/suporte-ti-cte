@@ -46,8 +46,8 @@ const exportPdf = async (req, res) => {
       const watermarkPath = path.join(__dirname, '..', 'assets', 'ufsm-watermark.png');
       if (fs.existsSync(watermarkPath)) {
         doc.save();
-        doc.opacity(0.16);
-        doc.image(watermarkPath, 110, 230, { width: 375 });
+        doc.opacity(0.09);
+        doc.image(watermarkPath, 157, 240, { width: 280 });
         doc.restore();
       }
     };
