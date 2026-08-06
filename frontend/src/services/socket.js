@@ -9,6 +9,13 @@ export const getSocket = () => {
     socket = io(backendUrl, {
       auth: { token },
       autoConnect: true,
+      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 5,
+      timeout: 10000,
+    });
+
+    socket.on('connect_error', (err) => {
+      console.warn('[Socket.io] Erro de conexão:', err?.message || err);
     });
   }
   return socket;
